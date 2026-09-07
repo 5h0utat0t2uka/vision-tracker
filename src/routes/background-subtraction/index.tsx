@@ -291,7 +291,7 @@ export function BackgroundSubtractionBlobTracker() {
         <CameraToggleButton
           status={camera.status}
           active={camera.status === 'running' || camera.status === 'suspended' || camera.status === 'requesting'}
-          onStart={() => void camera.start()}
+          onStart={() => void camera.start(selectedDeviceId || undefined)}
           onStop={camera.stop}
         />
       </div>

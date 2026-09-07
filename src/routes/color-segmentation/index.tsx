@@ -173,8 +173,13 @@ export function ColorSegmentationBlobTracker() {
           <Link to="/">← Back</Link>
         </div>
         <button type="button" popoverTarget="color-settings" aria-label="Settings" title="Settings"><SettingsIcon /></button>
-        <CameraToggleButton status={camera.status} active={cameraActive} disabled={!engineReady}
-          onStart={() => void camera.start(selectedDeviceId || undefined)} onStop={camera.stop} />
+        <CameraToggleButton
+          status={camera.status}
+          active={cameraActive}
+          disabled={!engineReady}
+          onStart={() => void camera.start(selectedDeviceId || undefined)}
+          onStop={camera.stop}
+        />
       </div>
 
       <aside id="color-settings" className="control-panel" aria-labelledby="color-settings-title" popover="auto">
@@ -215,7 +220,11 @@ export function ColorSegmentationBlobTracker() {
             if (cameraActive) void camera.start(deviceId || undefined)
           }}>
             <option value="">Default camera</option>
-            {camera.devices.map((device, index) => <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${index + 1}`}</option>)}
+            {camera.devices.map((device, index) => (
+              <option key={device.deviceId} value={device.deviceId}>
+                {device.label || `Camera ${index + 1}`}
+              </option>
+            ))}
           </select>
         </div>
         <div className="option-row">
