@@ -83,7 +83,7 @@
   > .metric {
     display: grid;
     gap: 0.25rem;
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     dt {
       opacity: 0.7;
     }
@@ -121,10 +121,14 @@
     &:has(svg) {
       background: transparent;
       padding: 0;
-      color: #fff;
     }
-    &:is(.blink) {
+    &:is(.camera) {
       animation: blink 1.2s infinite;
+    }
+    &:is([aria-label="Abort"]) {
+      color: orangered;
+    }
+    &:is([aria-label="Start"]) {
       color: dodgerblue;
     }
   }
@@ -156,18 +160,24 @@
   border: 0;
   border-radius: 8px;
   padding: 0 2rem 2rem;
-  color-scheme: light dark;
+  /*color-scheme: light dark;*/
+  background: color-mix(in oklch, white 50%, transparent);
+  backdrop-filter: blur(16px);
+  color: black;
   > .popover-heading {
     position: sticky;
     top: 0;
     padding: 2rem 0 1rem;
     h2 {
       margin: 0;
-      font-size: 1.25rem;
+      /*font-size: 1.25rem;*/
     }
     button {
-      background: gray;
-      font-size: 0.7rem;
+      display: grid;
+      place-content: center;
+      aspect-ratio: 1;
+      padding: 0.25em;
+      background: black;
       color: #fff;
     }
   }
@@ -178,12 +188,17 @@
     border-radius: 4px;
     font-size: 0.625rem;
   }
-  .description {
-    margin-block-start: 4rem;
-    font-size: 0.8rem;
-    font-family: ui-monospace, monospace;
-    color: gray;
+  select {
+    padding: 0.3em;
+    border-radius: 4px;
+    border: none;
   }
+  input[type="checkbox"] {
+    aspect-ratio: 1;
+    inline-size: 1.2rem;
+    block-size: 1.2rem;
+  }
+
 }
 
 .popover-heading,
@@ -211,8 +226,9 @@
 .range-control small,
 .control-panel > small {
   display: block;
-  color: gray;
+  color: black;
   font-size: 0.75rem;
+  opacity: 0.5;
 }
 
 .option-row,
@@ -226,10 +242,10 @@
   padding: 1rem;
   border-radius: 6px;
   border-width: 1px;
-  legend {
+  /*legend {
     padding-inline: 0.4rem;
     margin-inline: -0.4rem;
-  }
+  }*/
   label {
     display: flex;
     gap: 0.5rem;

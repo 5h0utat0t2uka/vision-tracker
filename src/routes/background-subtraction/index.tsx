@@ -289,7 +289,6 @@ export function BackgroundSubtractionBlobTracker() {
           <SettingsIcon />
         </button>
         <CameraToggleButton
-          status={camera.status}
           active={camera.status === 'running' || camera.status === 'suspended' || camera.status === 'requesting'}
           onStart={() => void camera.start(selectedDeviceId || undefined)}
           onStop={camera.stop}
@@ -310,7 +309,7 @@ export function BackgroundSubtractionBlobTracker() {
             popoverTargetAction="hide"
             aria-label="設定を閉じる"
           >
-            Close
+            <svg width={24} height={24} viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L17.94 6M18 18L6.06 6"></path></svg>
           </button>
         </div>
 

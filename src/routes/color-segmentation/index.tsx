@@ -174,7 +174,6 @@ export function ColorSegmentationBlobTracker() {
         </div>
         <button type="button" popoverTarget="color-settings" aria-label="Settings" title="Settings"><SettingsIcon /></button>
         <CameraToggleButton
-          status={camera.status}
           active={cameraActive}
           disabled={!engineReady}
           onStart={() => void camera.start(selectedDeviceId || undefined)}
@@ -185,7 +184,9 @@ export function ColorSegmentationBlobTracker() {
       <aside id="color-settings" className="control-panel" aria-labelledby="color-settings-title" popover="auto">
         <div className="popover-heading">
           <h2 id="color-settings-title">Setting</h2>
-          <button type="button" popoverTarget="color-settings" popoverTargetAction="hide">Close</button>
+          <button type="button" popoverTarget="color-settings" popoverTargetAction="hide" aria-label="設定を閉じる">
+            <svg width={24} height={24} viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L17.94 6M18 18L6.06 6"></path></svg>
+          </button>
         </div>
         <div className="control-list">
           <RangeControl id="hue-tolerance" label="Hue tolerance" min={0} max={180} step={1}
@@ -209,7 +210,7 @@ export function ColorSegmentationBlobTracker() {
             const value = event.target.value
             if (isHexColor(value)) setSettings(current => ({ ...current, targetColor: value.toLowerCase() }))
           }} />
-          <output htmlFor="target-color">{settings.targetColor}</output>
+          {/*<output htmlFor="target-color">{settings.targetColor}</output>*/}
         </div>
 
         <div className="option-row">
