@@ -4,9 +4,11 @@ import { useCamera } from '../../hooks/useCamera.ts'
 import { BlobTracker } from '../../components/shared/tracking/BlobTracker.ts'
 import { OverlayRenderer } from '../../components/shared/tracking/OverlayRenderer.ts'
 import type { TrackerSettings } from '../../components/shared/tracking/types.ts'
+import type { RegionEffect } from '../../components/shared/rendering/regionEffect.ts';
 import {
   CameraToggleButton,
   Metric,
+  RegionEffectControl,
   RangeControl,
   SettingsIcon,
 } from '../../components/shared/TrackerControls.tsx'
@@ -80,7 +82,8 @@ export function MediaPipeTasksVisionObjectTracker() {
   const detectorRef = useRef<ObjectDetectorClient | null>(null)
   const sourceSizeRef = useRef({ width: 0, height: 0 })
   const showTrailRef = useRef(true)
-  const showGrayscaleRef = useRef(true)
+  // const showGrayscaleRef = useRef(true)
+  const regionEffectRef = useRef<RegionEffect>('grayscale')
   const inferenceFpsRef = useRef(DEFAULT_INFERENCE_FPS)
   const accumulatorRef = useRef(createAccumulator())
   const [timings] = useState(() => new ProcessingTimings(TIMING_LABELS))
@@ -92,7 +95,8 @@ export function MediaPipeTasksVisionObjectTracker() {
   const configurationRef = useRef({ categories, scoreThreshold })
   const [inferenceFps, setInferenceFps] = useState(DEFAULT_INFERENCE_FPS)
   const [showTrail, setShowTrail] = useState(true)
-  const [showGrayscale, setShowGrayscale] = useState(true)
+  // const [showGrayscale, setShowGrayscale] = useState(true)
+  const [regionEffect, setRegionEffect] = useState<RegionEffect>('grayscale')
   const [inferenceLongEdge, setInferenceLongEdge] = useState<InferenceLongEdge>(INFERENCE_LONG_EDGE)
   const [selectedDeviceId, setSelectedDeviceId] = useState('')
   const [detectorStatus, setDetectorStatus] = useState<DetectorStatus>('loading')
@@ -101,7 +105,8 @@ export function MediaPipeTasksVisionObjectTracker() {
   const camera = useCamera(videoRef)
 
   showTrailRef.current = showTrail
-  showGrayscaleRef.current = showGrayscale
+  // showGrayscaleRef.current = showGrayscale
+  regionEffectRef.current = regionEffect
   inferenceFpsRef.current = inferenceFps
   configurationRef.current = { categories, scoreThreshold }
 
@@ -258,7 +263,15 @@ export function MediaPipeTasksVisionObjectTracker() {
         if (renderer) {
           const startedAt = performance.now()
           try {
-            renderer.render(trackerRef.current?.getTracks() ?? [], video, showTrailRef.current, showGrayscaleRef.current)
+            // renderer.render(trackerRef.current?.getTracks() ?? [], video, showTrailRef.current, showGrayscaleRef.current)
+            renderer.render(
+              trackerRef.current?.getTracks() ?? [],
+              video,
+              {
+                showTrail: showTrailRef.current,
+                regionEffect: regionEffectRef.current,
+              },
+            )
           } catch (error) {
             active = false
             setDetectorError(error instanceof Error ? error.message : 'Failed to render tracking results.')
@@ -346,7 +359,7 @@ export function MediaPipeTasksVisionObjectTracker() {
     <main className="tracker-app">
       <section className="video-stage" ref={stageRef} aria-label="カメラとAI追跡結果">
         <video ref={videoRef} autoPlay muted playsInline aria-hidden="true" />
-        <canvas ref={filterCanvasRef} className="filter-canvas" aria-hidden="true" />
+        <canvas ref={filterCanvasRef} className="filter-canvas" data-region-effect={regionEffect} aria-hidden="true" />
         <canvas ref={overlayCanvasRef} aria-hidden="true" />
 
         <dl className="metrics" aria-label="AI tracking metrics">
@@ -460,10 +473,6 @@ export function MediaPipeTasksVisionObjectTracker() {
           </select>
         </div>
 
-        <div className="option-row">
-          <label htmlFor="show-ai-trail">Trail lines</label>
-          <input id="show-ai-trail" type="checkbox" checked={showTrail} onChange={(event) => setShowTrail(event.target.checked)} />
-        </div>
 
         <div className="option-row">
           <label htmlFor="inference-resolution">Inference resolution</label>
@@ -474,12 +483,17 @@ export function MediaPipeTasksVisionObjectTracker() {
             {INFERENCE_LONG_EDGES.map(edge => <option key={edge} value={edge}>{edge} px</option>)}
           </select>
         </div>
+        <RegionEffectControl
+          id="mediapipe-region-effect"
+          value={regionEffect}
+          onChange={(nextRegionEffect) => {
+            setRegionEffect(nextRegionEffect);
+            timings.reset();
+          }}
+        />
         <div className="option-row">
-          <label htmlFor="show-ai-grayscale">Grayscale regions</label>
-          <input id="show-ai-grayscale" type="checkbox" checked={showGrayscale} onChange={event => {
-            setShowGrayscale(event.target.checked)
-            timings.reset()
-          }} />
+          <label htmlFor="show-ai-trail">Trail lines</label>
+          <input id="show-ai-trail" type="checkbox" checked={showTrail} onChange={(event) => setShowTrail(event.target.checked)} />
         </div>
 
         {(camera.error || detectorError) && <p className="error-message" role="alert">{camera.error ?? detectorError}</p>}

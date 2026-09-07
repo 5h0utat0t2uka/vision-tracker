@@ -1,9 +1,19 @@
 import type { CameraStatus } from '../../camera/CameraSession.ts'
+import {
+  isRegionEffect,
+  REGION_EFFECT_OPTIONS,
+  type RegionEffect,
+} from './rendering/regionEffect.ts';
 
 type MetricProps = {
   label: string
   value: string
 }
+type RegionEffectControlProps = {
+  id: string;
+  value: RegionEffect;
+  onChange: (value: RegionEffect) => void;
+};
 
 export function Metric({ label, value }: MetricProps) {
   return (
@@ -12,6 +22,37 @@ export function Metric({ label, value }: MetricProps) {
       <dd>{value}</dd>
     </div>
   )
+}
+
+export function RegionEffectControl({
+  id,
+  value,
+  onChange,
+}: RegionEffectControlProps) {
+  return (
+    <div className="option-row">
+      <label htmlFor={id}>Region effect</label>
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => {
+          const nextValue = event.currentTarget.value;
+          if (isRegionEffect(nextValue)) {
+            onChange(nextValue);
+          }
+        }}
+      >
+        {REGION_EFFECT_OPTIONS.map((option) => (
+          <option
+            key={option.value}
+            value={option.value}
+          >
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 type RangeControlProps = {

@@ -11,6 +11,7 @@ function App() {
       <Route path="background-subtraction" element={<BackgroundSubtractionBlobTracker />} />
       <Route path="color-segmentation" element={<ColorSegmentationBlobTracker />} />
       <Route path="mediapipe-tasks-vision" element={<MediaPipeTasksVisionObjectTracker />} />
+      <Route path="privacy" element={<Privacy />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
@@ -18,18 +19,20 @@ function App() {
 
 function Home() {
   return (
-    <main className='home'>
+    <main className='common'>
       <section>
         <h1>Vision Tracker</h1>
         <p>This React app compares three client-side detection and tracking approaches: background subtraction, HSV color segmentation, and MediaPipe Tasks Vision. <br />Each modes processing without uploading camera frames.</p>
-        <div className='ja'>
-          <p>カメラ映像の解析は全て端末内で処理され、外部へのデータ送信は行われません。</p>
+        <div>
+          <a href="https://github.com/5h0utat0t2uka/vision-tracker" target="_blank" rel="noopener noreferrer">
+            <svg width={32} height={32} viewBox="0 0 32 32"><path fill="#e64a19" d="M13.172 2.828L11.78 4.22l1.91 1.91l2 2A2.986 2.986 0 0 1 20 10.81a3.25 3.25 0 0 1-.31 1.31l2.06 2a2.68 2.68 0 0 1 3.37.57a2.86 2.86 0 0 1 .88 2.117a3.02 3.02 0 0 1-.856 2.109A2.9 2.9 0 0 1 23 19.81a2.93 2.93 0 0 1-2.13-.87a2.694 2.694 0 0 1-.56-3.38l-2-2.06a3 3 0 0 1-.31.12V20a3 3 0 0 1 1.44 1.09a2.92 2.92 0 0 1 .56 1.72a2.88 2.88 0 0 1-.878 2.128a2.98 2.98 0 0 1-2.048.871a2.981 2.981 0 0 1-2.514-4.719A3 3 0 0 1 16 20v-6.38a2.96 2.96 0 0 1-1.44-1.09a2.9 2.9 0 0 1-.56-1.72a2.9 2.9 0 0 1 .31-1.31l-3.9-3.9l-7.579 7.572a4 4 0 0 0-.001 5.658l10.342 10.342a4 4 0 0 0 5.656 0l10.344-10.344a4 4 0 0 0 0-5.656L18.828 2.828a4 4 0 0 0-5.656 0"></path></svg>
+            Repository
+          </a>
+          <Link to="/privacy">
+            <svg width={32} height={32} viewBox="0 0 32 32"><g fill="none"><path fill="url(#SVG0YxGxeQs)" d="M16.555 2.168a1 1 0 0 0-1.11 0C12.53 4.112 8.685 6.027 3.901 6.505A1 1 0 0 0 3 7.5V16c0 3.88 2.124 7.17 4.701 9.546c2.572 2.372 5.737 3.971 8.115 4.417l.184.034l.184-.034c2.378-.446 5.543-2.045 8.115-4.417C26.876 23.17 29 19.88 29 16V7.5a1 1 0 0 0-.9-.995c-4.785-.478-8.63-2.393-11.545-4.337"></path><defs><radialGradient id="SVG0YxGxeQs" cx={0} cy={0} r={1} gradientTransform="rotate(53.644 9.989 -14.008)scale(67.3559 60.0838)" gradientUnits="userSpaceOnUse"><stop offset={0.338} stopColor="#0fafff"></stop><stop offset={0.529} stopColor="#367af2"></stop><stop offset={0.682} stopColor="#5750e2"></stop><stop offset={0.861} stopColor="#cc23d1"></stop></radialGradient></defs></g></svg>
+            Privacy
+          </Link>
         </div>
-
-        <a href="https://github.com/5h0utat0t2uka/vision-tracker" target="_blank" rel="noopener noreferrer">
-          <svg width={128} height={128} viewBox="0 0 128 128"><path fill="#f34f29" d="M124.737 58.378L69.621 3.264c-3.172-3.174-8.32-3.174-11.497 0L46.68 14.71l14.518 14.518c3.375-1.139 7.243-.375 9.932 2.314c2.703 2.706 3.461 6.607 2.294 9.993l13.992 13.993c3.385-1.167 7.292-.413 9.994 2.295c3.78 3.777 3.78 9.9 0 13.679a9.673 9.673 0 0 1-13.683 0a9.68 9.68 0 0 1-2.105-10.521L68.574 47.933l-.002 34.341a9.7 9.7 0 0 1 2.559 1.828c3.778 3.777 3.778 9.898 0 13.683c-3.779 3.777-9.904 3.777-13.679 0c-3.778-3.784-3.778-9.905 0-13.683a9.7 9.7 0 0 1 3.167-2.11V47.333a9.6 9.6 0 0 1-3.167-2.111c-2.862-2.86-3.551-7.06-2.083-10.576L41.056 20.333L3.264 58.123a8.133 8.133 0 0 0 0 11.5l55.117 55.114c3.174 3.174 8.32 3.174 11.499 0l54.858-54.858a8.135 8.135 0 0 0-.001-11.501"></path></svg>
-          Repository
-        </a>
         <nav aria-label="Tracking methods">
           <ul>
             <li>
@@ -38,7 +41,7 @@ function Home() {
             </li>
             <li>
               <Link to="/color-segmentation">Color Segmentation Blob Tracking</Link>
-              <span>機械学習モデルを利用せず HSV色空間で特定の色の領域を抽出しして Blob Track を行う実装</span>
+              <span>機械学習モデルやAIを利用せず HSV色空間で特定の色の領域を抽出しして Blob Track を行う実装</span>
             </li>
             <li>
               <Link to="/mediapipe-tasks-vision">MediaPipe Tasks Vision Object Detection Tracking</Link>
@@ -51,12 +54,24 @@ function Home() {
   )
 }
 
+function Privacy() {
+  return (
+    <main className='common'>
+      <section>
+        <h1>Privacy</h1>
+        <p>カメラ映像の解析は全て端末内で処理され、アクセス解析などを含め外部へのデータ送信は一切行われません。</p>
+        <Link to="/">← Back</Link>
+      </section>
+    </main>
+  )
+}
 function NotFoundPage() {
   return (
-    <main className='home'>
+    <main className='common'>
       <section>
         <h1>404</h1>
-        <Link to="/">← Back to home</Link>
+        <p>ページが見つかりません</p>
+        <Link to="/">← Back</Link>
       </section>
     </main>
   )

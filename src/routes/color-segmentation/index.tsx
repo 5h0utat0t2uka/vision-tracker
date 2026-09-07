@@ -7,7 +7,7 @@ import { COLOR_FPS_OPTIONS, COLOR_METRICS_INTERVAL_MS, COLOR_TIMING_LABELS, DEFA
 import { FrameScheduler } from '../../components/shared/tracking/FrameScheduler.ts'
 import { ANALYSIS_LONG_EDGES, DEFAULT_ANALYSIS_LONG_EDGE, isAnalysisLongEdge, type AnalysisLongEdge } from '../../components/shared/tracking/analysisConfig.ts'
 import { ProcessingTimings } from '../../components/shared/ProcessingTimings.ts'
-import { CameraToggleButton, Metric, RangeControl, SettingsIcon } from '../../components/shared/TrackerControls.tsx'
+import { CameraToggleButton, Metric, RegionEffectControl, RangeControl, SettingsIcon } from '../../components/shared/TrackerControls.tsx'
 
 const INITIAL_METRICS = {
   ...INITIAL_COLOR_RESULT,
@@ -151,7 +151,7 @@ export function ColorSegmentationBlobTracker() {
     <main className="tracker-app">
       <section className="video-stage" ref={stageRef} aria-label="カメラと色領域の追跡結果">
         <video ref={videoRef} autoPlay muted playsInline aria-hidden="true" />
-        <canvas ref={filterRef} className="filter-canvas" aria-hidden="true" />
+        <canvas ref={filterRef} className="filter-canvas" data-region-effect={settings.regionEffect} aria-hidden="true" />
         <canvas ref={overlayRef} aria-hidden="true" />
         <canvas ref={analysisRef} className="analysis-canvas" aria-hidden="true" />
         <dl className="metrics" aria-label="Color tracking metrics">
@@ -233,6 +233,18 @@ export function ColorSegmentationBlobTracker() {
             {ANALYSIS_LONG_EDGES.map(edge => <option key={edge} value={edge}>{edge} px</option>)}
           </select>
         </div>
+        <RegionEffectControl
+          id="color-region-effect"
+          value={settings.regionEffect}
+          onChange={(regionEffect) => {
+            setSettings((current) => ({
+              ...current,
+              regionEffect,
+            }));
+            engineRef.current?.resetTimings();
+          }}
+        />
+
         <div className="option-row">
           <label htmlFor="color-trail">Trail lines</label>
           <input id="color-trail" type="checkbox" checked={settings.showTrail} onChange={event => {
@@ -241,14 +253,7 @@ export function ColorSegmentationBlobTracker() {
             engineRef.current?.resetTimings()
           }} />
         </div>
-        <div className="option-row">
-          <label htmlFor="color-grayscale">Grayscale regions</label>
-          <input id="color-grayscale" type="checkbox" checked={settings.showGrayscale} onChange={event => {
-            const showGrayscale = event.target.checked
-            setSettings(current => ({ ...current, showGrayscale }))
-            engineRef.current?.resetTimings()
-          }} />
-        </div>
+
         {(camera.error || engineError) && <p className="error-message" role="alert">{camera.error ?? engineError}</p>}
       </aside>
     </main>

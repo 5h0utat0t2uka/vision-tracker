@@ -1,4 +1,5 @@
 import type { TrackerSettings } from '../shared/tracking/types.ts'
+import type { RegionEffect } from '../shared/rendering/regionEffect.ts';
 
 export type ColorDetectionSettings = {
   targetColor: string
@@ -9,7 +10,7 @@ export type ColorDetectionSettings = {
 export type ColorTrackingSettings = ColorDetectionSettings & TrackerSettings & {
   minBlobAreaRatio: number
   showTrail: boolean
-  showGrayscale: boolean
+  regionEffect: RegionEffect
 }
 
 export const DEFAULT_COLOR_SETTINGS: ColorTrackingSettings = {
@@ -22,7 +23,7 @@ export const DEFAULT_COLOR_SETTINGS: ColorTrackingSettings = {
   maxMatchDistanceRatio: 0.12,
   trailDurationMs: 1700,
   showTrail: true,
-  showGrayscale: true,
+  regionEffect: 'grayscale',
 }
 export const ACHROMATIC_SATURATION_LIMIT = 0.1
 export const DARK_VALUE_LIMIT = 0.1

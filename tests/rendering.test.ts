@@ -13,6 +13,7 @@ import type { TrackingSettings } from '../src/components/background-subtraction/
 import { OverlayRenderer } from '../src/components/shared/tracking/OverlayRenderer.ts'
 import { BlobTracker } from '../src/components/shared/tracking/BlobTracker.ts'
 import type { Rect, Track } from '../src/components/shared/tracking/types.ts'
+import { isRegionEffect, REGION_EFFECT_OPTIONS } from '../src/components/shared/rendering/regionEffect.ts'
 
 const SETTINGS: TrackingSettings = {
   motionThreshold: 20,
@@ -22,9 +23,18 @@ const SETTINGS: TrackingSettings = {
   maxMatchDistanceRatio: 0.12,
   trailDurationMs: 1700,
   showTrail: true,
+  regionEffect: 'grayscale',
 }
 
-test('映像の再描画は観測回数・時刻・追跡状態を変更せず、グレースケールだけ無効化できる', () => {
+test('Region effectは定義済みの選択肢だけを受け付ける', () => {
+  assert.deepEqual(REGION_EFFECT_OPTIONS.map(option => option.value), ['grayscale', 'invert', 'none'])
+  for (const { value } of REGION_EFFECT_OPTIONS) assert.equal(isRegionEffect(value), true)
+  for (const value of ['', 'Grayscale', 'blur', 'grayscale(1)', 'showGrayscale']) {
+    assert.equal(isRegionEffect(value), false)
+  }
+})
+
+test('Region effectの切り替えは追跡状態を変更せず、Noneでも矩形と軌跡を維持する', () => {
   const tracker = new BlobTracker(640, 480)
   const bbox = { x: 100, y: 100, width: 40, height: 80 }
   const observation = { bbox, center: { x: 120, y: 140 }, area: 3200 }
@@ -37,12 +47,28 @@ test('映像の再描画は観測回数・時刻・追跡状態を変更せず�
   const renderer = new OverlayRenderer(filtered.canvas, overlay.canvas, 640, 480)
   renderer.resize(640, 480, 1)
   const video = { videoWidth: 640, videoHeight: 480 } as HTMLVideoElement
-  for (let frame = 0; frame < 30; frame++) renderer.render(tracker.getTracks(), video, true)
+  for (let frame = 0; frame < 30; frame++) {
+    renderer.render(tracker.getTracks(), video, { showTrail: true, regionEffect: 'grayscale' })
+  }
   assert.equal(filtered.drawCalls.length, 30)
   assert.deepEqual(tracker.getTracks(), before)
-  renderer.render(tracker.getTracks(), video, true, false)
-  assert.equal(filtered.drawCalls.length, 30)
-  assert.equal(overlay.boxes.length, 31)
+  assert.ok(before[0].trail.length > 1)
+  for (const regionEffect of ['invert', 'none', 'grayscale'] as const) {
+    const draws: number = filtered.drawCalls.length
+    const boxes = overlay.boxes.length
+    const strokes = overlay.strokes
+    const clears = filtered.clears
+    renderer.render(tracker.getTracks(), video, { showTrail: true, regionEffect })
+    assert.equal(filtered.drawCalls.length, draws + (regionEffect === 'none' ? 0 : 1))
+    assert.equal(filtered.clears, clears + 1)
+    assert.equal(overlay.boxes.length, boxes + 1)
+    assert.equal(overlay.strokes, strokes + 1)
+    assert.deepEqual(tracker.getTracks(), before)
+  }
+  const strokes = overlay.strokes
+  renderer.render(tracker.getTracks(), video, { showTrail: false, regionEffect: 'none' })
+  assert.equal(overlay.strokes, strokes)
+  assert.equal(overlay.boxes.length, 34)
   assert.equal(filtered.clears, overlay.clears)
   tracker.reset()
   assert.deepEqual(tracker.getTracks(), [])
@@ -86,6 +112,7 @@ function canvasFixture() {
   const boxes: number[][] = []
   const transforms: number[][] = []
   let clears = 0
+  let strokes = 0
   let reads = 0
   let region: Rect | null = null
   const context = {
@@ -93,7 +120,7 @@ function canvasFixture() {
     clearRect: () => { clears += 1 },
     setTransform: (...args: number[]) => transforms.push(args),
     save() {}, restore() {}, beginPath() {}, rect() {}, clip() {},
-    setLineDash() {}, moveTo() {}, lineTo() {}, stroke() {}, arc() {}, fill() {},
+    setLineDash() {}, moveTo() {}, lineTo() {}, stroke() { strokes += 1 }, arc() {}, fill() {},
     fillRect() {}, fillText() {},
     strokeRect: (...args: number[]) => boxes.push(args),
     measureText: () => ({ width: 40 }),
@@ -114,6 +141,7 @@ function canvasFixture() {
   return {
     canvas, drawCalls, boxes, transforms,
     get clears() { return clears },
+    get strokes() { return strokes },
     get reads() { return reads },
     setRegion(value: Rect | null) { region = value },
   }
@@ -160,7 +188,7 @@ for (const [sourceWidth, sourceHeight, longEdge] of [
       state: 'confirmed', hits: 2, trail: [],
     }
     const video = { videoWidth: sourceWidth, videoHeight: sourceHeight } as HTMLVideoElement
-    renderer.render([track], video, false)
+    renderer.render([track], video, { showTrail: false, regionEffect: 'grayscale' })
     const scale = Math.max(640 / sourceWidth, 480 / sourceHeight)
     const destination = [(640 - sourceWidth * scale) / 2, (480 - sourceHeight * scale) / 2, sourceWidth * scale, sourceHeight * scale]
     const drawn = filtered.drawCalls[0]
@@ -169,7 +197,7 @@ for (const [sourceWidth, sourceHeight, longEdge] of [
       assert.ok(Math.abs(Number(drawn[index + 5]) - destination[index]) < 1e-9)
       assert.ok(Math.abs(overlay.boxes[0][index] - destination[index]) < 1e-9)
     }
-    renderer.render([{ ...track, state: 'lost' }], video, false)
+    renderer.render([{ ...track, state: 'lost' }], video, { showTrail: false, regionEffect: 'grayscale' })
     assert.equal(filtered.drawCalls.length, 1)
     assert.equal(overlay.boxes.length, 2)
     renderer.clear()

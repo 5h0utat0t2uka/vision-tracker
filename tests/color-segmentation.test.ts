@@ -148,15 +148,26 @@ test('背景初期化なしで検出し、色変更で追跡をリセット、�
   assert.equal(f.engine.process(f.video, 50, settings).trackCount, 1)
   assert.equal(f.reads, reads)
   assert.deepEqual(f.engine.getTimingSummary(), summary)
-  assert.equal(f.engine.process(f.video, 100, { ...settings, showGrayscale: false }).trackCount, 1)
-  assert.equal(f.engine.process(f.video, 100, { ...settings, targetColor: '#00ff00' }).trackCount, 0)
-  assert.equal(f.engine.process(f.video, 100, settings).trackCount, 0)
-  assert.equal(f.engine.process(f.video, 150, settings).trackCount, 1)
-  assert.equal(f.engine.process(f.video, 200, { ...settings, minBlobAreaRatio: 0.5 }).detectionCount, 0)
+  let timestamp = 100
+  for (const regionEffect of ['invert', 'none', 'grayscale'] as const) {
+    const draws = f.draws.length
+    const reads = f.reads
+    const result = f.engine.process(f.video, timestamp, { ...settings, regionEffect })
+    assert.equal(result.trackCount, 1)
+    assert.equal(result.detectionCount, 1)
+    assert.equal(f.reads, reads + 1)
+    // Capture the original video every time; only enabled effects draw a region too.
+    assert.equal(f.draws.length, draws + (regionEffect === 'none' ? 1 : 2))
+    timestamp += 50
+  }
+  assert.equal(f.engine.process(f.video, timestamp, { ...settings, targetColor: '#00ff00' }).trackCount, 0)
+  assert.equal(f.engine.process(f.video, timestamp, settings).trackCount, 0)
+  assert.equal(f.engine.process(f.video, timestamp + 50, settings).trackCount, 1)
+  assert.equal(f.engine.process(f.video, timestamp + 100, { ...settings, minBlobAreaRatio: 0.5 }).detectionCount, 0)
   assert.ok(f.draws.every(args => args[0] === f.video))
   f.engine.reset()
   assert.equal(f.engine.getTimingSummary().total.average, 0)
-  assert.equal(f.engine.process(f.video, 250, settings).trackCount, 0)
+  assert.equal(f.engine.process(f.video, timestamp + 150, settings).trackCount, 0)
 })
 
 test('320/480の切り替え・回転・時間の巻き戻り・中断で状態を初期化する', () => {

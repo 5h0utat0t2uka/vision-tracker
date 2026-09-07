@@ -1,4 +1,5 @@
 import type { Point, Rect, Track } from './types.ts'
+import type { RegionEffect } from '../rendering/regionEffect.ts';
 
 // Video filtering needs fewer backing pixels than crisp lines and text.
 export const FILTER_MAX_PIXEL_RATIO = 1
@@ -10,6 +11,10 @@ type CoverTransform = {
   offsetX: number
   offsetY: number
 }
+type RenderOptions = {
+  showTrail: boolean;
+  regionEffect: RegionEffect;
+};
 
 export class OverlayRenderer {
   private readonly filterContext: CanvasRenderingContext2D
@@ -75,8 +80,7 @@ export class OverlayRenderer {
   render(
     tracks: readonly Track[],
     video: HTMLVideoElement,
-    showTrail: boolean,
-    showGrayscale = true,
+    options: RenderOptions
   ): void {
     this.clear()
     const sourceWidth = video.videoWidth
@@ -86,14 +90,19 @@ export class OverlayRenderer {
     }
 
     const transform = this.createCoverTransform(sourceWidth, sourceHeight)
-    for (const track of tracks) {
-      if (showGrayscale && track.state === 'confirmed') {
-        this.drawGrayscaleRegion(video, track.bbox, transform)
+    if (options.regionEffect !== 'none') {
+      for (const track of tracks) {
+        if (track.state === 'confirmed') {
+          this.drawFilteredRegion(
+            video,
+            track.bbox,
+            transform,
+          );
+        }
       }
     }
-
     for (const track of tracks) {
-      this.drawTrack(track, transform, showTrail)
+      this.drawTrack(track, transform, options.showTrail)
     }
   }
 
@@ -109,7 +118,7 @@ export class OverlayRenderer {
     }
   }
 
-  private drawGrayscaleRegion(
+  private drawFilteredRegion(
     video: HTMLVideoElement,
     source: Rect,
     transform: CoverTransform,
@@ -189,7 +198,7 @@ export class OverlayRenderer {
   private drawLabel(id: number, x: number, y: number, color: string): void {
     const context = this.overlayContext
     const label = `ID ${id.toString().padStart(4, '0')}`
-    context.font = '600 12px ui-monospace, monospace'
+    context.font = '600 11px ui-monospace, monospace'
     const textWidth = context.measureText(label).width
     const labelWidth = textWidth + 12
     const labelHeight = 22
