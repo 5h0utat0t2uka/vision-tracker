@@ -1,14 +1,14 @@
 # Vision Tracker
 ![Blob tracking visualization](./docs/blob-tracking-visualization.png)
 This React app compares three client-side detection and tracking approaches: background subtraction, HSV color segmentation, and MediaPipe Tasks Vision. \
-Each modes processing without uploading camera frames.
+Camera frames are processed locally and are not uploaded.
 
 ## Features
 - リアルタイムなカメラ映像の解析
 - ブラウザのみで動作してインストール不要
 - 映像を外部に送信せず端末内で完結
 - ハードウェア（内部・外部カメラ）に依存しない
-- 以下のような解析の用途に利用可能
+- 以下のような解析の用途に応用可能
   - 滞在・活動量の可視化 
   - 動線・ヒートマップ生成
   - 
