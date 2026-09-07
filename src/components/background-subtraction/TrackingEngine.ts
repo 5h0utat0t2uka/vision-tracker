@@ -209,7 +209,10 @@ export class TrackingEngine {
     const componentsCompletedAt = performance.now()
     const tracks = pipeline.blobTracker.update(detections, timestampMs, settings)
     const trackedAt = performance.now()
-    this.overlayRenderer.render(tracks, video, settings.showTrail, settings.showGrayscale)
+    this.overlayRenderer.render(tracks, video, {
+      showTrail: settings.showTrail,
+      regionEffect: settings.regionEffect,
+    })
     const renderedAt = performance.now()
     this.timings.add({
       components: componentsCompletedAt - componentsStartedAt,

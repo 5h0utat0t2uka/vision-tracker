@@ -10,7 +10,6 @@
   inset: 0;
   inline-size: 100cqi;
   block-size: 100cqb;
-  /*block-size: 100dvh;*/
 }
 
 .tracker-app {
@@ -39,47 +38,19 @@
   pointer-events: none;
 }
 
-.filter-canvas {
+.filter-canvas[data-region-effect='grayscale'] {
   filter: grayscale(1);
 }
-
+.filter-canvas[data-region-effect='invert'] {
+  filter: invert(1);
+}
+.filter-canvas[data-region-effect='none'] {
+  display: none;
+}
 .analysis-canvas {
   display: none;
 }
 
-/*.stage-placeholder {
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  display: grid;
-  gap: 0.5rem;
-  place-items: center;
-  place-content: center;
-  inline-size: max-content;
-  block-size: max-content;
-  padding: 1rem;
-  border-radius: 8px;
-  z-index: 4;
-  background:
-  color-mix(in oklab, black 50%, transparent);
-  backdrop-filter: blur(16px);
-  p {
-    margin: 0;
-  }
-  span {
-    font-size: 0.8rem;
-    color: gray;
-  }
-}*/
-
-/*.stage-placeholder p {
-  margin: 0;
-}
-
-.stage-placeholder span {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-}*/
 
 .metrics {
   z-index: 3;
@@ -103,37 +74,6 @@
   inline-size: max-content;
   margin: 0;
 
-  /*z-index: 3;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  gap: 1.5rem;
-  margin: auto;
-  padding: 1.2rem;
-  font-family: ui-monospace,monospace;
-  display: flex;
-  position: fixed;
-  inset-block-end: max(1rem, env(safe-area-inset-bottom));
-  overflow: auto;
-  max-inline-size: calc(100cqi - 4rem);
-  inset-inline-start: 0;
-  inset-inline-end: 0;
-  border-radius: 8px;
-  background: color-mix(in oklab, black 50%, transparent);
-  backdrop-filter: blur(16px);*/
-
-  /*position: fixed;
-  z-index: 3;
-  overflow: auto;
-  inset-block-end: max(1rem, env(safe-area-inset-bottom));
-  inset-inline-start: max(1rem, env(safe-area-inset-left));
-  display: flex;
-  gap: 1.5rem;
-  max-inline-size: calc(100vw - 2rem);
-  margin: 0;
-  padding: 0.75rem;
-  color: #fff;
-  font-family: ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;*/
   > * {
     white-space: nowrap;
     &:last-child {
@@ -181,10 +121,11 @@
     &:has(svg) {
       background: transparent;
       padding: 0;
+      color: #fff;
     }
     &:is(.blink) {
       animation: blink 1.2s infinite;
-      color: red;
+      color: dodgerblue;
     }
   }
   div {
@@ -193,18 +134,17 @@
     gap: 0.5rem;
     margin: 0;
     margin-inline-end: auto;
-    font-family: ui-monospace, monospace;
-    /*font-size: 0.8rem;*/
+    p {
+      margin: 0;
+      font-family: ui-monospace, monospace;
+      text-transform: uppercase;
+    }
     a {
       color: #fff;
       text-decoration-thickness: 0.5px;
       text-underline-offset: 2px;
       inline-size: max-content;
       opacity: 0.7;
-    }
-    p {
-      margin: 0;
-      text-transform: uppercase;
     }
   }
 }
@@ -228,15 +168,15 @@
     button {
       background: gray;
       font-size: 0.7rem;
+      color: #fff;
     }
   }
   button {
-    padding: 0.8em 1.6em;
+    padding: 1em 1.6em;
     text-transform: capitalize;
     border: 0;
     border-radius: 4px;
     font-size: 0.625rem;
-    font-family: ui-monospace, monospace;
   }
   .description {
     margin-block-start: 4rem;
@@ -287,8 +227,8 @@
   border-radius: 6px;
   border-width: 1px;
   legend {
-    padding-inline: 0.5rem;
-    margin-inline: -0.5rem;
+    padding-inline: 0.4rem;
+    margin-inline: -0.4rem;
   }
   label {
     display: flex;

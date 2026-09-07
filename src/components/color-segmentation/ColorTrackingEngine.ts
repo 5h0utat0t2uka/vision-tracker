@@ -106,7 +106,10 @@ export class ColorTrackingEngine {
     const extractedAt = performance.now()
     const tracks = pipeline.tracker.update(detections, timestampMs, settings)
     const trackedAt = performance.now()
-    this.renderer.render(tracks, video, settings.showTrail, settings.showGrayscale)
+    this.renderer.render(tracks, video, {
+      showTrail: settings.showTrail,
+      regionEffect: settings.regionEffect,
+    })
     const renderedAt = performance.now()
     this.timings.add({
       capture: capturedAt - startedAt,

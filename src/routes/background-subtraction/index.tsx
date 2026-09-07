@@ -18,6 +18,7 @@ import {
 import {
   CameraToggleButton,
   Metric,
+  RegionEffectControl,
   RangeControl,
   SettingsIcon,
 } from '../../components/shared/TrackerControls.tsx'
@@ -31,7 +32,7 @@ const DEFAULT_SETTINGS: TrackingSettings = {
   maxMatchDistanceRatio: 0.12,
   trailDurationMs: 1700,
   showTrail: true,
-  showGrayscale: true,
+  regionEffect: 'grayscale'
 }
 
 type RuntimeMetrics = FrameResult & {
@@ -238,6 +239,7 @@ export function BackgroundSubtractionBlobTracker() {
         <canvas
           ref={filterCanvasRef}
           className="filter-canvas"
+          data-region-effect={settings.regionEffect}
           aria-hidden="true"
         />
         <canvas ref={overlayCanvasRef} aria-hidden="true" />
@@ -409,7 +411,18 @@ export function BackgroundSubtractionBlobTracker() {
         {/*<small id="analysis-resolution-hint">
           解析する長辺の画素数で、大きいほど細部を解析し処理負荷が増加します。
         </small>*/}
+        <RegionEffectControl
+          id="background-region-effect"
+          value={settings.regionEffect}
+            onChange={(regionEffect) => {
+              setSettings((current) => ({
+                ...current,
+                regionEffect,
+              }));
 
+              engineRef.current?.resetTimings();
+            }}
+        />
         <div className="option-row">
           <label htmlFor="show-trail">Trail lines</label>
           <input
@@ -425,24 +438,6 @@ export function BackgroundSubtractionBlobTracker() {
           />
         </div>
 
-        <div className="option-row">
-          <label htmlFor="show-grayscale">Grayscale regions</label>
-          <input id="show-grayscale" type="checkbox" checked={settings.showGrayscale} onChange={event => {
-            setSettings(current => ({ ...current, showGrayscale: event.target.checked }))
-            engineRef.current?.resetTimings()
-          }} />
-        </div>
-
-        {/*<button
-          type="button"
-          onClick={() => {
-            setSettings(DEFAULT_SETTINGS)
-            setTargetFps(30)
-          }}
-        >
-          Reset to default
-        </button>*/}
-        {/*{cameraDescription && <p className='description'>Input: {cameraDescription}</p>}*/}
         {(camera.error || engineError) && (
           <p className="error-message" role="alert">
             {camera.error ?? engineError}

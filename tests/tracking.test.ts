@@ -16,6 +16,7 @@ const SETTINGS: TrackingSettings = {
   maxMatchDistanceRatio: 0.2,
   trailDurationMs: 500,
   showTrail: true,
+  regionEffect: 'grayscale',
 }
 
 test('MotionDetectorは背景初期化後に3×3の動体領域を検出する', () => {

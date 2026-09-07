@@ -12,7 +12,6 @@ body {
   inline-size: 100%;
   block-size: 100%;
   margin: 0;
-  /*overflow: hidden;*/
   background: #000;
 }
 
@@ -28,21 +27,30 @@ button {
   cursor: pointer;
 }
 
-.home {
+.common {
   padding: 1rem;
   section {
-    > a {
-      inline-size: fit-content;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 0.5rem;
+    > h1 {
+      font-size: 2.4em;
+    }
+    > div {
+      display: flex;
       align-items: center;
-      text-decoration: none;
-      font-size: 0.8rem;
-      > svg {
-        inline-size: 1lh;
-        block-size: 1lh;
-        aspect-ratio: 1;
+      gap: 1rem;
+      > a {
+        inline-size: fit-content;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.25rem;
+        align-items: center;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-size: 1rem;
+        > svg {
+          inline-size: 1em;
+          block-size: 1em;
+          aspect-ratio: 1;
+        }
       }
     }
     > nav {
@@ -70,15 +78,6 @@ button {
           }
         }
       }
-    }
-    > .ja {
-      inline-size: fit-content;
-      font-size: 0.8rem;
-      margin-block-end: 1.5rem;
-      /*margin-block: 1rem;
-      > p {
-        margin: 0;
-      }*/
     }
   }
 }
