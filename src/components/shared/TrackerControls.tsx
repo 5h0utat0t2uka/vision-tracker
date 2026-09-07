@@ -1,4 +1,3 @@
-import type { CameraStatus } from '../../camera/CameraSession.ts'
 import {
   isRegionEffect,
   REGION_EFFECT_OPTIONS,
@@ -112,7 +111,7 @@ export function SettingsIcon() {
 }
 
 type CameraToggleButtonProps = {
-  status: CameraStatus
+  // status: CameraStatus
   active: boolean
   disabled?: boolean
   onStart: () => void
@@ -120,24 +119,22 @@ type CameraToggleButtonProps = {
 }
 
 export function CameraToggleButton({
-  status,
   active,
   disabled = false,
   onStart,
   onStop,
 }: CameraToggleButtonProps) {
-  const blink = status !== 'running'
-  const title = active ? 'Stop Camera' : 'Start Camera'
+  const title = active ? 'Abort Camera' : 'Start Camera'
 
   if (active) {
     return (
-      <button type="button" onClick={onStop} aria-label="Abort" title={title}>
+      <button type="button" onClick={onStop} aria-label="Abort" title={title} className='camera'>
         <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24"><path fill="currentColor" d="M.97 3.97a.75.75 0 0 1 1.06 0l15 15a.75.75 0 1 1-1.06 1.06l-15-15a.75.75 0 0 1 0-1.06m16.28 12.09l2.69 2.69c.944.945 2.56.276 2.56-1.06V6.31c0-1.336-1.616-2.005-2.56-1.06l-2.69 2.69zm-1.5-8.56v8.068L4.682 4.5h8.068a3 3 0 0 1 3 3m-14.25 9V7.682l11.773 11.773q-.256.045-.523.045H4.5a3 3 0 0 1-3-3"></path></svg>
       </button>
     )
   }
   return (
-    <button type="button" onClick={onStart} aria-label="Start" disabled={disabled} title={title} className={blink ? 'blink' : undefined}>
+    <button type="button" onClick={onStart} aria-label="Start" disabled={disabled} title={title} className='camera'>
       <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24"><path fill="currentColor" d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h8.25a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3zm15.44 14.25l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06"></path></svg>
     </button>
   )

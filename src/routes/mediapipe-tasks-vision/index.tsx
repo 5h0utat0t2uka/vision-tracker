@@ -391,7 +391,6 @@ export function MediaPipeTasksVisionObjectTracker() {
           <SettingsIcon />
         </button>
         <CameraToggleButton
-          status={camera.status}
           active={cameraActive}
           disabled={detectorStatus !== 'ready'}
           onStart={() => void camera.start(selectedDeviceId || undefined)}
@@ -402,7 +401,9 @@ export function MediaPipeTasksVisionObjectTracker() {
       <aside id="mediapipe-settings" className="control-panel" aria-labelledby="mediapipe-settings-title" popover="auto">
         <div className="popover-heading">
           <h2 id="mediapipe-settings-title">Setting</h2>
-          <button type="button" popoverTarget="mediapipe-settings" popoverTargetAction="hide">Close</button>
+          <button type="button" popoverTarget="mediapipe-settings" popoverTargetAction="hide" aria-label="設定を閉じる">
+            <svg width={24} height={24} viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L17.94 6M18 18L6.06 6"></path></svg>
+          </button>
         </div>
 
         <div className="control-list">
