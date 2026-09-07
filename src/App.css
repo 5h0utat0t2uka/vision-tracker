@@ -118,6 +118,7 @@
     border-radius: 4px;
     font-size: 0.8rem;
     font-family: ui-monospace, monospace;
+    color: #fff;
     &:has(svg) {
       background: transparent;
       padding: 0;
