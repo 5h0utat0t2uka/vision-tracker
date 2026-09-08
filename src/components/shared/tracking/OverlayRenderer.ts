@@ -169,23 +169,23 @@ export class OverlayRenderer {
     context.globalAlpha = alpha
     context.strokeStyle = color
     context.fillStyle = color
-    context.lineWidth = 2
     context.setLineDash(track.state === 'lost' ? [6, 5] : [])
 
     if (showTrail && track.trail.length > 1) {
       context.beginPath()
       track.trail.forEach((point, index) => {
         const mappedPoint = this.mapPoint(point, transform)
-
         if (index === 0) {
           context.moveTo(mappedPoint.x, mappedPoint.y)
         } else {
           context.lineTo(mappedPoint.x, mappedPoint.y)
         }
       })
+      context.lineWidth = 1
       context.stroke()
     }
 
+    context.lineWidth = 2
     context.strokeRect(rect.x, rect.y, rect.width, rect.height)
     context.setLineDash([])
     context.beginPath()

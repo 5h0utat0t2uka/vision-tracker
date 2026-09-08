@@ -28,6 +28,8 @@ button {
 }
 
 .common {
+  max-inline-size: 800px;
+  margin-inline: auto;
   padding: 1rem;
   section {
     > h1 {
