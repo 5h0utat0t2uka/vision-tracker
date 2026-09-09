@@ -28,7 +28,7 @@ const SETTINGS: TrackingSettings = {
 }
 
 test('Region effectは定義済みの選択肢だけを受け付ける', () => {
-  assert.deepEqual(REGION_EFFECT_OPTIONS.map(option => option.value), ['grayscale', 'invert', 'false-color', 'none'])
+  assert.deepEqual(REGION_EFFECT_OPTIONS.map(option => option.value), ['grayscale', 'invert', 'greenscale', 'false-color-filter', 'false-color-webgl', 'none'])
   for (const { value } of REGION_EFFECT_OPTIONS) assert.equal(isRegionEffect(value), true)
   for (const value of ['', 'Grayscale', 'blur', 'grayscale(1)', 'showGrayscale']) {
     assert.equal(isRegionEffect(value), false)
@@ -54,13 +54,19 @@ test('Region effectの切り替えは追跡状態を変更せず、Noneでも矩
   assert.equal(filtered.drawCalls.length, 30)
   assert.deepEqual(tracker.getTracks(), before)
   assert.ok(before[0].trail.length > 1)
-  for (const regionEffect of ['invert', 'false-color', 'none', 'grayscale'] as const) {
+  for (const regionEffect of ['invert', 'false-color-webgl', 'false-color-filter', 'none', 'grayscale'] as const) {
     const draws: number = filtered.drawCalls.length
     const boxes = overlay.boxes.length
     const strokes = overlay.strokes
     const clears = filtered.clears
     renderer.render(tracker.getTracks(), video, { showTrail: true, regionEffect })
     assert.equal(filtered.drawCalls.length, draws + (regionEffect === 'none' ? 0 : 1))
+    if (regionEffect !== 'none') {
+      assert.equal(filtered.drawCalls.at(-1)?.[0], regionEffect === 'false-color-webgl' ? filtered.gpu.canvas : video)
+    }
+    if (regionEffect === 'false-color-filter') {
+      assert.equal(filtered.gpu.calls.filter(call => call.name === 'loseContext').length, 1)
+    }
     assert.equal(filtered.clears, clears + 1)
     assert.equal(overlay.boxes.length, boxes + 1)
     assert.equal(overlay.strokes, strokes + 1)
@@ -69,7 +75,7 @@ test('Region effectの切り替えは追跡状態を変更せず、Noneでも矩
   const strokes = overlay.strokes
   renderer.render(tracker.getTracks(), video, { showTrail: false, regionEffect: 'none' })
   assert.equal(overlay.strokes, strokes)
-  assert.equal(overlay.boxes.length, 35)
+  assert.equal(overlay.boxes.length, 36)
   assert.equal(filtered.clears, overlay.clears)
   tracker.reset()
   assert.deepEqual(tracker.getTracks(), [])

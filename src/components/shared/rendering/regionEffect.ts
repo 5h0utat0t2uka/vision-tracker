@@ -1,7 +1,9 @@
 export const REGION_EFFECT_OPTIONS = [
   { value: 'grayscale', label: 'Grayscale' },
   { value: 'invert', label: 'Invert' },
-  { value: 'false-color', label: 'False color' },
+  { value: 'greenscale', label: 'NVD' },
+  { value: 'false-color-filter', label: 'Filter Predator' },
+  { value: 'false-color-webgl', label: 'WebGL Predator' },
   { value: 'none', label: 'None' },
 ] as const;
 

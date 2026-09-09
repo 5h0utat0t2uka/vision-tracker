@@ -98,11 +98,11 @@ export class OverlayRenderer {
     }
 
     const transform = this.createCoverTransform(sourceWidth, sourceHeight)
-    if (options.regionEffect !== 'false-color' && this.falseColorRenderer) {
+    if (options.regionEffect !== 'false-color-webgl' && this.falseColorRenderer) {
       this.falseColorRenderer.dispose()
       this.falseColorRenderer = null
     }
-    if (options.regionEffect === 'false-color') {
+    if (options.regionEffect === 'false-color-webgl') {
       if (tracks.some(track => track.state === 'confirmed')) {
         this.falseColorRenderer ??= new FalseColorRenderer(this.filterCanvas.ownerDocument.createElement('canvas'))
         const frame = this.falseColorRenderer.render(video, tracks, {
