@@ -1,5 +1,6 @@
 import type { Point, Rect, Track } from './types.ts'
 import type { RegionEffect } from '../rendering/regionEffect.ts';
+import { FalseColorRenderer } from '../rendering/FalseColorRenderer.ts'
 
 // Video filtering needs fewer backing pixels than crisp lines and text.
 export const FILTER_MAX_PIXEL_RATIO = 1
@@ -25,6 +26,7 @@ export class OverlayRenderer {
   private analysisHeight: number
   private cssWidth = 1
   private cssHeight = 1
+  private falseColorRenderer: FalseColorRenderer | null = null
 
   constructor(
     filterCanvas: HTMLCanvasElement,
@@ -77,6 +79,12 @@ export class OverlayRenderer {
     this.overlayContext.clearRect(0, 0, this.cssWidth, this.cssHeight)
   }
 
+  reset(): void {
+    this.clear()
+    this.falseColorRenderer?.dispose()
+    this.falseColorRenderer = null
+  }
+
   render(
     tracks: readonly Track[],
     video: HTMLVideoElement,
@@ -90,7 +98,20 @@ export class OverlayRenderer {
     }
 
     const transform = this.createCoverTransform(sourceWidth, sourceHeight)
-    if (options.regionEffect !== 'none') {
+    if (options.regionEffect !== 'false-color' && this.falseColorRenderer) {
+      this.falseColorRenderer.dispose()
+      this.falseColorRenderer = null
+    }
+    if (options.regionEffect === 'false-color') {
+      if (tracks.some(track => track.state === 'confirmed')) {
+        this.falseColorRenderer ??= new FalseColorRenderer(this.filterCanvas.ownerDocument.createElement('canvas'))
+        const frame = this.falseColorRenderer.render(video, tracks, {
+          ...transform, analysisWidth: this.analysisWidth, analysisHeight: this.analysisHeight,
+          cssWidth: this.cssWidth, cssHeight: this.cssHeight,
+        }, this.filterCanvas.width, this.filterCanvas.height)
+        this.filterContext.drawImage(frame, 0, 0, this.cssWidth, this.cssHeight)
+      }
+    } else if (options.regionEffect !== 'none') {
       for (const track of tracks) {
         if (track.state === 'confirmed') {
           this.drawFilteredRegion(

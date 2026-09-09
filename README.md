@@ -27,6 +27,11 @@ Camera frames are processed locally and are not uploaded.
   - MediaPipe Tasks Vision Object Detection & Tracking  
   特定のオブジェクトを対象に MediaPipe Tasks Vision の Object Detectorを利用した実装
 
+<!--## Region effect
+3つの追跡ページのSettingsで `Grayscale` / `Invert` / `False color` / `None` を選択できます。初期値は `Grayscale` です。
+`False color` は確定した矩形内の画素を明るさに応じて黒（0）→青（80）→シアン（150）→黄（200）→白（255）へ滑らかに配色します。温度の測定ではありません。
+配色と境界値は `src/components/shared/rendering/falseColor.ts` の `FALSE_COLOR_STOPS` で管理します。sRGBのRGB値から `0.2126 R + 0.7152 G + 0.0722 B` で明るさを求め、WebGLのルックアップテクスチャで表示用のオフスクリーンCanvasだけを変換します。透明部分・矩形線・軌跡・元映像を用いる検出処理は変更しません。JavaScriptによる追加の画素読み戻しはありませんが、GPU描画・Canvas合成には処理負荷がかかります。WebGLを利用できない場合は、`False color`以外のRegion effectを選択してカメラを再起動してください。-->
+
 ## Background Subtraction Blob Track
 1. `getUserMedia()`でカメラ映像を取得
 2. `requestVideoFrameCallback()`で映像フレームに同期

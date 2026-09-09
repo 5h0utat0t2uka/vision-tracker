@@ -49,7 +49,7 @@ export class ColorTrackingEngine {
 
   reset(): void {
     this.pipeline?.tracker.reset()
-    this.renderer.clear()
+    this.renderer.reset()
     this.timings.reset()
     this.previousTimestamp = null
     this.lastResult = INITIAL_COLOR_RESULT

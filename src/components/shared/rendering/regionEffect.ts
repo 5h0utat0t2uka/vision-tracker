@@ -1,6 +1,7 @@
 export const REGION_EFFECT_OPTIONS = [
   { value: 'grayscale', label: 'Grayscale' },
   { value: 'invert', label: 'Invert' },
+  { value: 'false-color', label: 'False color' },
   { value: 'none', label: 'None' },
 ] as const;
 

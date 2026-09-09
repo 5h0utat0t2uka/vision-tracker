@@ -59,7 +59,7 @@ function Privacy() {
     <main className='common'>
       <section>
         <h1>Privacy</h1>
-        <p>カメラ映像はブラウザ上で処理され、外部へは送信されません。<br />推論ライブラリの <a href="https://www.npmjs.com/package/@mediapipe/tasks-vision" target="_blank" rel="noopener noreferrer">@mediapipe/tasks-vision</a> を利用する <Link to="/mediapipe-tasks-vision">MediaPipe Tasks Vision Object Detection Tracking</Link> のページでは、性能および利用状況に関するメトリクスが Google へ送信されます。</p>
+        <p>カメラ映像はブラウザ上で処理され、外部へは送信されません。<br />学習モデルによる推論を行うため <a href="https://www.npmjs.com/package/@mediapipe/tasks-vision" target="_blank" rel="noopener noreferrer">@mediapipe/tasks-vision</a> を利用する <Link to="/mediapipe-tasks-vision">MediaPipe Tasks Vision Object Detection Tracking</Link> のページでは、性能および利用状況に関するメトリクスが Google へ送信されます。</p>
         <p>詳細は <a href="https://developers.google.com/edge/mediapipe/solutions/tasks?utm_source=chatgpt.com#mediapipe_tasks_privacy_notice" target="_blank" rel="noopener noreferrer">MediaPipe Tasks のドキュメント</a> または <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google のプライバシー</a>を確認ください。</p>
         <Link to="/">← Back</Link>
       </section>

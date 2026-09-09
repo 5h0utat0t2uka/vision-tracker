@@ -14,6 +14,7 @@ import { OverlayRenderer } from '../src/components/shared/tracking/OverlayRender
 import { BlobTracker } from '../src/components/shared/tracking/BlobTracker.ts'
 import type { Rect, Track } from '../src/components/shared/tracking/types.ts'
 import { isRegionEffect, REGION_EFFECT_OPTIONS } from '../src/components/shared/rendering/regionEffect.ts'
+import { webglFixture } from './helpers/webgl.ts'
 
 const SETTINGS: TrackingSettings = {
   motionThreshold: 20,
@@ -27,7 +28,7 @@ const SETTINGS: TrackingSettings = {
 }
 
 test('Region effectは定義済みの選択肢だけを受け付ける', () => {
-  assert.deepEqual(REGION_EFFECT_OPTIONS.map(option => option.value), ['grayscale', 'invert', 'none'])
+  assert.deepEqual(REGION_EFFECT_OPTIONS.map(option => option.value), ['grayscale', 'invert', 'false-color', 'none'])
   for (const { value } of REGION_EFFECT_OPTIONS) assert.equal(isRegionEffect(value), true)
   for (const value of ['', 'Grayscale', 'blur', 'grayscale(1)', 'showGrayscale']) {
     assert.equal(isRegionEffect(value), false)
@@ -53,7 +54,7 @@ test('Region effectの切り替えは追跡状態を変更せず、Noneでも矩
   assert.equal(filtered.drawCalls.length, 30)
   assert.deepEqual(tracker.getTracks(), before)
   assert.ok(before[0].trail.length > 1)
-  for (const regionEffect of ['invert', 'none', 'grayscale'] as const) {
+  for (const regionEffect of ['invert', 'false-color', 'none', 'grayscale'] as const) {
     const draws: number = filtered.drawCalls.length
     const boxes = overlay.boxes.length
     const strokes = overlay.strokes
@@ -68,7 +69,7 @@ test('Region effectの切り替えは追跡状態を変更せず、Noneでも矩
   const strokes = overlay.strokes
   renderer.render(tracker.getTracks(), video, { showTrail: false, regionEffect: 'none' })
   assert.equal(overlay.strokes, strokes)
-  assert.equal(overlay.boxes.length, 34)
+  assert.equal(overlay.boxes.length, 35)
   assert.equal(filtered.clears, overlay.clears)
   tracker.reset()
   assert.deepEqual(tracker.getTracks(), [])
@@ -108,6 +109,7 @@ test('背景差分は実行した区間だけ計測し、重複フレームは�
 
 // Record drawing operations without relying on a browser or real camera.
 function canvasFixture() {
+  const gpu = webglFixture()
   const drawCalls: unknown[][] = []
   const boxes: number[][] = []
   const transforms: number[][] = []
@@ -137,9 +139,9 @@ function canvasFixture() {
       return { width, height, data, colorSpace: 'srgb' }
     },
   }
-  const canvas = { width: 0, height: 0, getContext: () => context } as unknown as HTMLCanvasElement
+  const canvas = { width: 0, height: 0, getContext: () => context, ownerDocument: { createElement: () => gpu.canvas } } as unknown as HTMLCanvasElement
   return {
-    canvas, drawCalls, boxes, transforms,
+    canvas, drawCalls, boxes, transforms, gpu,
     get clears() { return clears },
     get strokes() { return strokes },
     get reads() { return reads },

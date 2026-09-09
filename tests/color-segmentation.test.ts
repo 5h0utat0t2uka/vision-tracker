@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { webglFixture } from './helpers/webgl.ts'
 import { ColorDetector, getColorMode, hexToHsv, isHexColor, rgbToHsv } from '../src/components/color-segmentation/ColorDetector.ts'
 import { ColorTrackingEngine } from '../src/components/color-segmentation/ColorTrackingEngine.ts'
 import { DEFAULT_COLOR_SETTINGS, type ColorTrackingSettings } from '../src/components/color-segmentation/config.ts'
@@ -118,6 +119,7 @@ test('色条件の無効値・不一致サイズを拒否し、画面全体が�
 })
 
 function engineFixture() {
+  const gpu = webglFixture()
   let paint = redPatch
   let reads = 0
   const draws: unknown[][] = []
@@ -129,13 +131,13 @@ function engineFixture() {
       setLineDash() {}, moveTo() {}, lineTo() {}, stroke() {}, arc() {}, fill() {}, fillRect() {}, fillText() {}, strokeRect() {},
       measureText: () => ({ width: 40 }),
     }
-    return { width: 0, height: 0, getContext: () => context } as unknown as HTMLCanvasElement
+    return { width: 0, height: 0, getContext: () => context, ownerDocument: { createElement: () => gpu.canvas } } as unknown as HTMLCanvasElement
   }
   const canvas = makeCanvas()
   const engine = new ColorTrackingEngine(canvas, makeCanvas(), makeCanvas())
   engine.resizeOverlay(640, 360, 2)
   const video = { videoWidth: 11, videoHeight: 11 } as HTMLVideoElement
-  return { engine, canvas, video, draws, get reads() { return reads }, setPaint(value: typeof paint) { paint = value } }
+  return { engine, canvas, video, draws, gpu, get reads() { return reads }, setPaint(value: typeof paint) { paint = value } }
 }
 
 test('背景初期化なしで検出し、色変更で追跡をリセット、描画設定変更では継続する', () => {
@@ -149,7 +151,7 @@ test('背景初期化なしで検出し、色変更で追跡をリセット、�
   assert.equal(f.reads, reads)
   assert.deepEqual(f.engine.getTimingSummary(), summary)
   let timestamp = 100
-  for (const regionEffect of ['invert', 'none', 'grayscale'] as const) {
+  for (const regionEffect of ['invert', 'false-color', 'none', 'grayscale'] as const) {
     const draws = f.draws.length
     const reads = f.reads
     const result = f.engine.process(f.video, timestamp, { ...settings, regionEffect })
@@ -164,7 +166,8 @@ test('背景初期化なしで検出し、色変更で追跡をリセット、�
   assert.equal(f.engine.process(f.video, timestamp, settings).trackCount, 0)
   assert.equal(f.engine.process(f.video, timestamp + 50, settings).trackCount, 1)
   assert.equal(f.engine.process(f.video, timestamp + 100, { ...settings, minBlobAreaRatio: 0.5 }).detectionCount, 0)
-  assert.ok(f.draws.every(args => args[0] === f.video))
+  assert.ok(f.draws.every(args => args[0] === f.video || args[0] === f.gpu.canvas))
+  assert.ok(f.gpu.calls.some(call => call.name === 'texImage2D' && call.args.at(-1) === f.video))
   f.engine.reset()
   assert.equal(f.engine.getTimingSummary().total.average, 0)
   assert.equal(f.engine.process(f.video, timestamp + 150, settings).trackCount, 0)
