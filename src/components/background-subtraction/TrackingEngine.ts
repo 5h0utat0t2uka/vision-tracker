@@ -96,7 +96,7 @@ export class TrackingEngine {
     this.resetTimings()
     this.pipeline?.motionDetector.reset()
     this.pipeline?.blobTracker.reset()
-    this.overlayRenderer.clear()
+    this.overlayRenderer.reset()
     this.previousTimestampMs = null
     this.lastResult = INITIAL_RESULT
   }

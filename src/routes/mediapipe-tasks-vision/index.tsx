@@ -128,7 +128,7 @@ export function MediaPipeTasksVisionObjectTracker() {
 
     return () => {
       resizeObserver.disconnect()
-      renderer.clear()
+      renderer.reset()
       rendererRef.current = null
     }
   }, [])
@@ -167,7 +167,7 @@ export function MediaPipeTasksVisionObjectTracker() {
 
     return () => {
       detector.dispose()
-      rendererRef.current?.clear()
+      rendererRef.current?.reset()
       trackerRef.current = null
       pendingDrawRef.current = null
       detectorRef.current = null
@@ -306,7 +306,7 @@ export function MediaPipeTasksVisionObjectTracker() {
       trackerRef.current?.reset()
       pendingDrawRef.current = null
       detector.beginSession()
-      rendererRef.current?.clear()
+      rendererRef.current?.reset()
     }
   }, [camera.status, camera.stop, detectorStatus, backend, timings, inferenceLongEdge])
 
