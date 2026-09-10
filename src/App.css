@@ -41,8 +41,18 @@
 .filter-canvas[data-region-effect='grayscale'] {
   filter: grayscale(1);
 }
+.filter-canvas[data-region-effect='greenscale'] {
+  filter: grayscale(1) sepia(1) hue-rotate(1rad) contrast(1.5) saturate(2);
+}
 .filter-canvas[data-region-effect='invert'] {
   filter: invert(1);
+}
+.filter-canvas[data-region-effect='false-color-filter'] {
+  filter: url(#region-false-color);
+}
+.region-effect-definitions {
+  position: absolute;
+  pointer-events: none;
 }
 .filter-canvas[data-region-effect='none'] {
   display: none;

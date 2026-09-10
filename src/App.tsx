@@ -1,4 +1,5 @@
 import './App.css'
+import { RegionEffectFilters } from './components/shared/rendering/RegionEffectFilters'
 import { Link, Route, Routes } from 'react-router'
 import { BackgroundSubtractionBlobTracker } from './routes/background-subtraction'
 import { ColorSegmentationBlobTracker } from './routes/color-segmentation'
@@ -6,14 +7,17 @@ import { MediaPipeTasksVisionObjectTracker } from './routes/mediapipe-tasks-visi
 
 function App() {
   return (
-    <Routes>
-      <Route index element={<Home />} />
-      <Route path="background-subtraction" element={<BackgroundSubtractionBlobTracker />} />
-      <Route path="color-segmentation" element={<ColorSegmentationBlobTracker />} />
-      <Route path="mediapipe-tasks-vision" element={<MediaPipeTasksVisionObjectTracker />} />
-      <Route path="privacy" element={<Privacy />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+    <>
+      <RegionEffectFilters />
+      <Routes>
+        <Route index element={<Home />} />
+        <Route path="background-subtraction" element={<BackgroundSubtractionBlobTracker />} />
+        <Route path="color-segmentation" element={<ColorSegmentationBlobTracker />} />
+        <Route path="mediapipe-tasks-vision" element={<MediaPipeTasksVisionObjectTracker />} />
+        <Route path="privacy" element={<Privacy />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </>
   )
 }
 

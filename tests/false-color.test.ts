@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { FALSE_COLOR_BRIGHTNESS_WEIGHTS, FALSE_COLOR_STOPS, FALSE_COLOR_PALETTE } from '../src/components/shared/rendering/falseColor.ts'
+import { FALSE_COLOR_BRIGHTNESS_WEIGHTS, FALSE_COLOR_STOPS, FALSE_COLOR_PALETTE, FALSE_COLOR_FILTER_TABLES, FALSE_COLOR_FILTER_MATRIX } from '../src/components/shared/rendering/falseColor.ts'
 import { FalseColorRenderer } from '../src/components/shared/rendering/FalseColorRenderer.ts'
 import type { Track } from '../src/components/shared/tracking/types.ts'
 import { webglFixture } from './helpers/webgl.ts'
@@ -14,9 +14,25 @@ test('False colorのRGBAテクスチャは配色定数と不均等な区間の�
     if (index > 0) assert.ok(stop.brightness > FALSE_COLOR_STOPS[index - 1].brightness)
     assert.deepEqual([...FALSE_COLOR_PALETTE.slice(stop.brightness * 4, stop.brightness * 4 + 4)], [...stop.color, 255])
   }
-  for (const [brightness, rgb] of [[40, [0, 0, 128]], [115, [0, 128, 255]], [175, [128, 255, 128]], [222, [255, 255, 102]]] as const) {
+  for (const [brightness, rgb] of [[40, [0, 100, 218]], [115, [0, 200, 128]], [175, [128, 228, 0]], [222, [255, 153, 0]]] as const) {
     assert.deepEqual([...FALSE_COLOR_PALETTE.slice(brightness * 4, brightness * 4 + 4)], [...rgb, 255])
   }
+})
+
+test('SVGの配色テーブルはWebGLの全256色と一致し、明るさ変換はalphaを保持する', () => {
+  for (const [channel, table] of FALSE_COLOR_FILTER_TABLES.entries()) {
+    const values = table.split(' ').map(Number)
+    assert.equal(values.length, 256)
+    for (let brightness = 0; brightness < 256; brightness++) {
+      assert.equal(Math.round(values[brightness] * 255), FALSE_COLOR_PALETTE[brightness * 4 + channel])
+    }
+  }
+  const matrix = FALSE_COLOR_FILTER_MATRIX.split(' ').map(Number)
+  assert.equal(matrix.length, 20)
+  for (let row = 0; row < 3; row++) {
+    assert.deepEqual(matrix.slice(row * 5, row * 5 + 5), [0.2126, 0.7152, 0.0722, 0, 0])
+  }
+  assert.deepEqual(matrix.slice(15), [0, 0, 0, 1, 0])
 })
 
 const viewport = { analysisWidth: 320, analysisHeight: 180, cssWidth: 640, cssHeight: 360, renderWidth: 640, renderHeight: 360, offsetX: 0, offsetY: 0 }

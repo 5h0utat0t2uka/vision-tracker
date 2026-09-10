@@ -151,7 +151,7 @@ test('背景初期化なしで検出し、色変更で追跡をリセット、�
   assert.equal(f.reads, reads)
   assert.deepEqual(f.engine.getTimingSummary(), summary)
   let timestamp = 100
-  for (const regionEffect of ['invert', 'false-color', 'none', 'grayscale'] as const) {
+  for (const regionEffect of ['invert', 'false-color-webgl', 'false-color-filter', 'none', 'grayscale'] as const) {
     const draws = f.draws.length
     const reads = f.reads
     const result = f.engine.process(f.video, timestamp, { ...settings, regionEffect })
