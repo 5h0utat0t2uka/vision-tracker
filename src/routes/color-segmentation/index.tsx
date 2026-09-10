@@ -7,6 +7,7 @@ import { COLOR_FPS_OPTIONS, COLOR_METRICS_INTERVAL_MS, COLOR_TIMING_LABELS, DEFA
 import { FrameScheduler } from '../../components/shared/tracking/FrameScheduler.ts'
 import { ANALYSIS_LONG_EDGES, DEFAULT_ANALYSIS_LONG_EDGE, isAnalysisLongEdge, type AnalysisLongEdge } from '../../components/shared/tracking/analysisConfig.ts'
 import { ProcessingTimings } from '../../components/shared/ProcessingTimings.ts'
+import { CaptureButton } from '../../components/shared/CaptureButton.tsx'
 import { CameraToggleButton, Metric, RegionEffectControl, RangeControl, SettingsIcon } from '../../components/shared/TrackerControls.tsx'
 
 const INITIAL_METRICS = {
@@ -180,6 +181,10 @@ export function ColorSegmentationBlobTracker() {
           onStop={camera.stop}
         />
       </div>
+
+      {camera.status === 'running' && (
+        <CaptureButton videoRef={videoRef} overlayRef={overlayRef} />
+      )}
 
       <aside id="color-settings" className="control-panel" aria-labelledby="color-settings-title" popover="auto">
         <div className="popover-heading">

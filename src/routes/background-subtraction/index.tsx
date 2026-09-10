@@ -22,6 +22,7 @@ import {
   RangeControl,
   SettingsIcon,
 } from '../../components/shared/TrackerControls.tsx'
+import { CaptureButton } from '../../components/shared/CaptureButton.tsx'
 import { ProcessingTimings, type TimingSummary } from '../../components/shared/ProcessingTimings.ts'
 
 const DEFAULT_SETTINGS: TrackingSettings = {
@@ -294,6 +295,10 @@ export function BackgroundSubtractionBlobTracker() {
           onStop={camera.stop}
         />
       </div>
+
+      {camera.status === 'running' && (
+        <CaptureButton videoRef={videoRef} overlayRef={overlayCanvasRef} />
+      )}
 
       <aside
         id="tracking-settings"

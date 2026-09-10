@@ -36,6 +36,7 @@ import {
   type ObjectDetectorResult,
 } from '../../components/mediapipe-tasks-vision/ObjectDetectorClient.ts'
 import { ProcessingTimings } from '../../components/shared/ProcessingTimings.ts'
+import { CaptureButton } from '../../components/shared/CaptureButton.tsx'
 import { TIMING_LABELS, type TimingSummary } from '../../components/mediapipe-tasks-vision/timingConfig.ts'
 
 const TRACKER_SETTINGS: TrackerSettings = {
@@ -398,6 +399,10 @@ export function MediaPipeTasksVisionObjectTracker() {
         />
       </div>
 
+      {camera.status === 'running' && (
+        <CaptureButton videoRef={videoRef} overlayRef={overlayCanvasRef} />
+      )}
+
       <aside id="mediapipe-settings" className="control-panel" aria-labelledby="mediapipe-settings-title" popover="auto">
         <div className="popover-heading">
           <h2 id="mediapipe-settings-title">Setting</h2>
@@ -405,7 +410,6 @@ export function MediaPipeTasksVisionObjectTracker() {
             <svg width={24} height={24} viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L17.94 6M18 18L6.06 6"></path></svg>
           </button>
         </div>
-
         <div className="control-list">
           <fieldset className="category-options">
             <legend>Detection targets</legend>
@@ -434,7 +438,6 @@ export function MediaPipeTasksVisionObjectTracker() {
             onChange={setScoreThreshold}
           />
         </div>
-
         <div className="option-row">
           <label htmlFor="inference-backend">Inference backend</label>
           <select id="inference-backend" value={backend} onChange={event => {
