@@ -41,15 +41,15 @@ function Home() {
           <ul>
             <li>
               <Link to="/background-subtraction">Background Subtraction Blob Tracking</Link>
-              <span>機械学習モデルやAIを利用せず 背景差分を利用して動体検出して追跡する Blob Track 実装</span>
+              <span>機械学習モデルやAIを利用せず 背景差分を利用して動体検出して追跡する Blob Track の実装</span>
             </li>
             <li>
               <Link to="/color-segmentation">Color Segmentation Blob Tracking</Link>
-              <span>機械学習モデルやAIを利用せず HSV色空間で特定の色の領域を検出して追跡する Blob Track 実装</span>
+              <span>機械学習モデルやAIを利用せず HSV色空間で特定の色の領域を検出して追跡する Blob Track の実装</span>
             </li>
             <li>
               <Link to="/mediapipe-tasks-vision">MediaPipe Tasks Vision Object Detection Tracking</Link>
-              <span>軽量な量子化済み学習モデルを利用して、特定のオブジェクト(人間・車・自転車のプリセット)を検出して追跡を行う MediaPipe Tasks Vision のた実装</span>
+              <span>軽量な量子化済み学習モデルを利用して、特定のオブジェクト(人間・車・自転車のプリセット)を検出して追跡を行う MediaPipe Tasks Vision の実装</span>
             </li>
           </ul>
         </nav>

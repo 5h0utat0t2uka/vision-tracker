@@ -1,3 +1,5 @@
+<img alt="CI" src="https://img.shields.io/github/actions/workflow/status/5h0utat0t2uka/vision-tracker/ci.yml?branch=dev&style=for-the-badge&label=CI"/> <img alt="dependabot" src="https://img.shields.io/github/actions/workflow/status/5h0utat0t2uka/vision-tracker/dependabot/dependabot-updates?branch=main&style=for-the-badge&label=dependabot"/>
+
 # Vision Tracker
 ![Blob tracking visualization](./docs/blob-tracking-visualization.png)
 This React app compares three client-side detection and tracking approaches: background subtraction, HSV color segmentation, and MediaPipe Tasks Vision. \
@@ -17,15 +19,15 @@ Camera frames are processed locally and are not uploaded.
 - `/` — tracking method selection
 - `/background-subtraction`
   - Background Subtraction Blob Tracker  
-  機械学習モデルやAIを利用せず Background Subtraction（背景差分）を利用した動体検出の Blob Track 実装
+  機械学習モデルやAIを利用せず 背景差分を利用して動体検出して追跡する Blob Track の実装
 
 - `/color-segmentation`
   - HSV Color Segmentation Blob Tracking  
-  機械学習モデルやAIを利用せず HSV色空間で特定の色の領域を抽出しして Blob Track を行う実装
+  機械学習モデルやAIを利用せず HSV色空間で特定の色の領域を検出して追跡する Blob Track の実装
 
 - `/mediapipe-tasks-vision`
   - MediaPipe Tasks Vision Object Detection & Tracking  
-  特定のオブジェクトを対象に MediaPipe Tasks Vision の Object Detectorを利用した実装
+  軽量な量子化済み学習モデルを利用して、特定のオブジェクト(人間・車・自転車のプリセット)を検出して追跡を行う MediaPipe Tasks Vision の実装
 
 <!--## Region effect
 3つの追跡ページのSettingsで `Grayscale` / `Invert` / `False color` / `None` を選択できます。初期値は `Grayscale` です。
