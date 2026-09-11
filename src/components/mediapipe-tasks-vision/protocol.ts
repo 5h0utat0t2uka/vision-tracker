@@ -1,10 +1,10 @@
 import type { Detection } from '../shared/tracking/types.ts'
-import type { DetectionCategory, InferenceBackend } from './config.ts'
+import type { DetectionCategory, InferenceConfiguration } from './config.ts'
 
 export type DetectorWorkerRequest =
   | {
       type: 'init'
-      backend: InferenceBackend
+      inferenceConfiguration: InferenceConfiguration
       configurationId: number
       modelUrl: string
       wasmRoot: string

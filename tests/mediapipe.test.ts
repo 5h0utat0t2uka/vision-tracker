@@ -5,9 +5,10 @@ import test from 'node:test'
 import { convertMediaPipeDetections } from '../src/components/mediapipe-tasks-vision/convertDetections.ts'
 import {
   DEFAULT_DETECTION_CATEGORIES,
-  DEFAULT_INFERENCE_BACKEND,
-  INFERENCE_BACKENDS,
-  isInferenceBackend,
+  DEFAULT_INFERENCE_CONFIGURATION,
+  DEFAULT_INFERENCE_LONG_EDGE,
+  INFERENCE_CONFIGURATIONS,
+  isInferenceConfiguration,
   DETECTION_CATEGORIES,
   resolveMediaPipeAssetUrls,
   getInferenceSize,
@@ -105,15 +106,24 @@ test('GPU用float16 v1モデルのSHA-256とTFLite識別子を検証する', asy
   assert.equal(createHash('sha256').update(model).digest('hex'), '4b59100025bea1235a84c1038879a6cccc9f6c49f5e41144e91e74d99e780993')
 })
 
-test('初期値はint8 CPUで、GPU選択時だけfloat16の同一オリジンURLを解決する', () => {
-  assert.equal(DEFAULT_INFERENCE_BACKEND, 'cpu-int8')
-  assert.equal(INFERENCE_BACKENDS['cpu-int8'].delegate, 'CPU')
-  assert.equal(INFERENCE_BACKENDS['gpu-float16'].delegate, 'GPU')
-  assert.ok(isInferenceBackend('cpu-int8'))
-  assert.ok(isInferenceBackend('gpu-float16'))
-  assert.equal(isInferenceBackend('toString'), false)
-  assert.equal(isInferenceBackend('gpu-int8'), false)
-  assert.deepEqual(resolveMediaPipeAssetUrls('/demo/', 'https://example.com', 'gpu-float16'), {
+test('初期値と4種類のモデル構成を検証する', () => {
+  assert.equal(DEFAULT_INFERENCE_CONFIGURATION, 'lite0-cpu-int8')
+  assert.equal(DEFAULT_INFERENCE_LONG_EDGE, 320)
+  assert.equal(INFERENCE_CONFIGURATIONS['lite0-cpu-int8'].recommendedLongEdge, 320)
+  assert.equal(INFERENCE_CONFIGURATIONS['lite0-gpu-float16'].recommendedLongEdge, 320)
+  assert.equal(INFERENCE_CONFIGURATIONS['lite2-cpu-int8'].recommendedLongEdge, 480)
+  assert.equal(INFERENCE_CONFIGURATIONS['lite2-gpu-float16'].recommendedLongEdge, 480)
+  assert.equal(INFERENCE_CONFIGURATIONS['lite0-cpu-int8'].delegate, 'CPU')
+  assert.equal(INFERENCE_CONFIGURATIONS['lite0-gpu-float16'].delegate, 'GPU')
+  assert.equal(INFERENCE_CONFIGURATIONS['lite2-cpu-int8'].delegate, 'CPU')
+  assert.equal(INFERENCE_CONFIGURATIONS['lite2-gpu-float16'].delegate, 'GPU')
+  assert.ok(isInferenceConfiguration('lite0-cpu-int8'))
+  assert.ok(isInferenceConfiguration('lite0-gpu-float16'))
+  assert.ok(isInferenceConfiguration('lite2-cpu-int8'))
+  assert.ok(isInferenceConfiguration('lite2-gpu-float16'))
+  assert.equal(isInferenceConfiguration('toString'), false)
+  assert.equal(isInferenceConfiguration('gpu-int8'), false)
+  assert.deepEqual(resolveMediaPipeAssetUrls('/demo/', 'https://example.com', 'lite0-gpu-float16'), {
     modelUrl: 'https://example.com/demo/mediapipe/models/efficientdet-lite0-float16-v1.tflite',
     wasmRoot: 'https://example.com/demo/mediapipe/wasm',
   })
@@ -155,10 +165,10 @@ test('非同期検出は900ms間隔でも確定し、初回の未検出から猶
   assert.equal(tracker.update([detection('person', 100)], 9001, settings).length, 0)
 })
 
-test('推論画像は拡大せず長辺640に収め、丸め誤差を含め元映像座標へ戻す', () => {
+test('推論画像は拡大せず既定モデルの推奨長辺320に収め、丸め誤差を含め元映像座標へ戻す', () => {
   for (const [width, height] of [[1280, 720], [720, 1280], [1001, 751], [160, 90]]) {
     const size = getInferenceSize(width, height)
-    assert.ok(size.width <= 640 && size.height <= 640)
+    assert.ok(size.width <= DEFAULT_INFERENCE_LONG_EDGE && size.height <= DEFAULT_INFERENCE_LONG_EDGE)
     assert.ok(size.width <= width && size.height <= height)
     const [result] = convertMediaPipeDetections([{
       boundingBox: { originX: size.width / 4, originY: size.height / 4, width: size.width / 2, height: size.height / 2 },
@@ -169,7 +179,7 @@ test('推論画像は拡大せず長辺640に収め、丸め誤差を含め元�
     assert.ok(Math.abs(result.center.x - width / 2) < 1e-9)
     assert.ok(Math.abs(result.area - width * height / 4) < 1e-6)
   }
-  assert.deepEqual(getInferenceSize(1280, 720), { width: 640, height: 360 })
+  assert.deepEqual(getInferenceSize(1280, 720), { width: 320, height: 180 })
   assert.deepEqual(getInferenceSize(160, 90), { width: 160, height: 90 })
   assert.throws(() => getInferenceSize(0, 720), RangeError)
 })
@@ -216,4 +226,29 @@ test('区間ごとの統計は独立し、再描画で推論のサンプルを�
   timings.add({ render: 2 })
   assert.deepEqual(timings.summarize().render, { average: 2, p95: 2 })
   assert.deepEqual(timings.summarize().inference, { average: 0, p95: 0 })
+})
+
+test('EfficientDet-Lite2モデルの配布ファイルとURLを検証する', async () => {
+  const models = [
+    {
+      configuration: 'lite2-cpu-int8',
+      fileName: 'efficientdet-lite2-int8-v1.tflite',
+      sha256: 'b3f50554cb0ea559e90328845f7d9ba4d13c8bff372914d24e06bc8bb72fa896',
+    },
+    {
+      configuration: 'lite2-gpu-float16',
+      fileName: 'efficientdet-lite2-float16-v1.tflite',
+      sha256: '5d4ebec1029bc9907aeadb9e7b4ac9cb1da6a19d01ad375210a9ae18ba173302',
+    },
+  ] as const
+
+  for (const model of models) {
+    const contents = await readFile(new URL('../public/mediapipe/models/' + model.fileName, import.meta.url))
+    assert.equal(contents.subarray(4, 8).toString(), 'TFL3')
+    assert.equal(createHash('sha256').update(contents).digest('hex'), model.sha256)
+    assert.deepEqual(resolveMediaPipeAssetUrls('/demo/', 'https://example.com', model.configuration), {
+      modelUrl: 'https://example.com/demo/mediapipe/models/' + model.fileName,
+      wasmRoot: 'https://example.com/demo/mediapipe/wasm',
+    })
+  }
 })

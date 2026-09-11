@@ -51,15 +51,15 @@ Camera frames are processed locally and are not uploaded.
 4. 8近傍のBlob抽出、共通Trackerでの関連付け、矩形・軌跡の描画
 
 ## MediaPipe Tasks Vision Object Detection & Track
-1. EfficientDet-Lite0 int8 v1＋CPU（初期値）とMediaPipe WASMを同一オリジンから読み込み。設定の`Inference backend`でfloat16 v1＋GPUへ切り替え可能
+1. EfficientDet-Lite0／Lite2のint8＋CPUまたはfloat16＋GPUとMediaPipe WASMを同一オリジンから読み込み。初期値はEfficientDet-Lite0 int8＋CPUで、設定の`Inference model`から切り替え可能
 2. `requestVideoFrameCallback()`から既定10fps（5/10/15fpsから選択）で最新フレームを選択
-3. `Inference resolution`で選んだ長辺320/480/640px以内（初期値640px）へ縦横比を維持して縮小した`ImageBitmap`をmodule Workerへtransferし、`detectForVideo()`をMain Thread外で実行
+3. モデル切り替え時に`Inference resolution`を推奨値（Lite0は320px、Lite2は480px）へ自動設定し、選んだ長辺320/480/640px以内へ縦横比を維持して縮小した`ImageBitmap`をmodule Workerへtransferし、`detectForVideo()`をMain Thread外で実行
 4. `categoryAllowlist`で人物（初期値）・車・自転車を複数選択
 5. MediaPipeのbboxを元映像の座標へ戻して共通の`Detection`へ変換し、カテゴリが一致するTrackだけを関連付け
 6. カメラ・カテゴリ・映像寸法・推論解像度の変更時は映像セッションの世代番号を更新し、古い非同期結果を破棄。モデル設定の要求番号は別に管理し、設定変更中の停止でも設定完了通知を受理
 7. 推論結果の受信時だけ`BlobTracker`を更新し、`requestVideoFrameCallback()`で最新の追跡状態と映像を`OverlayRenderer`へ描画。再描画で観測回数やTrackの寿命を進めない
 
-<!--バックエンド切り替え時は旧Detectorを解放し、Workerを作り直します。Trackと時間統計はリセットし、カメラ・カテゴリ・Confidence・解像度・FPS・描画設定は維持します。float16モデルはGPU選択時のみ取得します。GPU初期化・推論の失敗は画面に表示し、`Use CPU · int8`からCPUへ戻せます（自動フォールバックはしません）。モデルとdelegateの対応・初期値は`src/components/mediapipe-tasks-vision/config.ts`で管理します。GPUが必ず速いとは限らないため、同じ映像と設定で既存の平均・p95を比較してください。-->
+<!--モデル構成切り替え時は旧Detectorを解放し、Workerを作り直します。Trackと時間統計はリセットし、解像度はモデルの推奨値へ更新し、カメラ・カテゴリ・Confidence・FPS・描画設定は維持します。float16モデルはGPU選択時のみ取得します。GPU初期化・推論の失敗は画面に表示し、`Use EfficientDet-Lite0 · CPU · int8`からCPUへ戻せます（自動フォールバックはしません）。モデルとdelegateの対応・初期値は`src/components/mediapipe-tasks-vision/config.ts`で管理します。GPUが必ず速いとは限らないため、同じ映像と設定で既存の平均・p95を比較してください。-->
 
 <!--### Performance comparison
 - 両方式の`Grayscale regions`でグレースケールだけを無効化できます。矩形・ID・軌跡は維持します。CSSの`backdrop-filter`方式は使用していません。
@@ -73,7 +73,7 @@ Camera frames are processed locally and are not uploaded.
 <!--### Processing and metrics
 - Workerが受付可能なときだけFPSスケジューラを進め、画像取得・推論は同時に1件までで、フレームをキューに蓄積しない
 - MediaPipeのTrack保持時間は、最初に関連付けできない検出結果を受け取ったフレーム時刻から800msです。結果待ちだけではTrackを失効させず、未検出が続いて期限を超えたIDは再利用しません。カメラ・映像寸法・設定の変更や非表示への移行では追跡をリセットします。
-- `INFERENCE_LONG_EDGE`と`INFERENCE_LONG_EDGES`（`src/components/mediapipe-tasks-vision/config.ts`）で推論画像の長辺上限の初期値・選択肢を管理します。カメラ表示の解像度は変えません。小さい物体の精度と処理速度は対象端末で比較してください。
+- 各モデル構成の`recommendedLongEdge`、`DEFAULT_INFERENCE_LONG_EDGE`、`INFERENCE_LONG_EDGES`（`src/components/mediapipe-tasks-vision/config.ts`）で推論画像の推奨値・初期値・選択肢を管理します。カメラ表示の解像度は変えません。小さい物体の精度と処理速度は対象端末で比較してください。
 - 両方式でフィルター用Canvasは最大DPR 1、矩形・文字用は最大DPR 2です。上限は`OverlayRenderer.ts`の`FILTER_MAX_PIXEL_RATIO`と`OVERLAY_MAX_PIXEL_RATIO`で調整できます。
 - 時間統計は区間ごとに最新120件を保持します。
 
