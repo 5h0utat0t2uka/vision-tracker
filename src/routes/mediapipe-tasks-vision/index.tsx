@@ -14,15 +14,15 @@ import {
 } from '../../components/shared/TrackerControls.tsx'
 import {
   DEFAULT_DETECTION_CATEGORIES,
-  DEFAULT_INFERENCE_BACKEND,
-  INFERENCE_BACKENDS,
-  isInferenceBackend,
-  type InferenceBackend,
+  DEFAULT_INFERENCE_CONFIGURATION,
+  INFERENCE_CONFIGURATIONS,
+  isInferenceConfiguration,
+  type InferenceConfiguration,
   DEFAULT_INFERENCE_FPS,
   DEFAULT_SCORE_THRESHOLD,
   DETECTION_CATEGORIES,
   INFERENCE_FPS_OPTIONS,
-  INFERENCE_LONG_EDGE,
+  DEFAULT_INFERENCE_LONG_EDGE,
   INFERENCE_LONG_EDGES,
   isInferenceLongEdge,
   type InferenceLongEdge,
@@ -92,13 +92,13 @@ export function MediaPipeTasksVisionObjectTracker() {
   const previousConfigurationRef = useRef(initialConfigurationKey)
   const [categories, setCategories] = useState<DetectionCategory[]>([...DEFAULT_DETECTION_CATEGORIES])
   const [scoreThreshold, setScoreThreshold] = useState(DEFAULT_SCORE_THRESHOLD)
-  const [backend, setBackend] = useState<InferenceBackend>(DEFAULT_INFERENCE_BACKEND)
+  const [inferenceConfiguration, setInferenceConfiguration] = useState<InferenceConfiguration>(DEFAULT_INFERENCE_CONFIGURATION)
   const configurationRef = useRef({ categories, scoreThreshold })
   const [inferenceFps, setInferenceFps] = useState(DEFAULT_INFERENCE_FPS)
   const [showTrail, setShowTrail] = useState(true)
   // const [showGrayscale, setShowGrayscale] = useState(true)
   const [regionEffect, setRegionEffect] = useState<RegionEffect>('grayscale')
-  const [inferenceLongEdge, setInferenceLongEdge] = useState<InferenceLongEdge>(INFERENCE_LONG_EDGE)
+  const [inferenceLongEdge, setInferenceLongEdge] = useState<InferenceLongEdge>(DEFAULT_INFERENCE_LONG_EDGE)
   const [selectedDeviceId, setSelectedDeviceId] = useState('')
   const [detectorStatus, setDetectorStatus] = useState<DetectorStatus>('loading')
   const [detectorError, setDetectorError] = useState<string | null>(null)
@@ -136,7 +136,7 @@ export function MediaPipeTasksVisionObjectTracker() {
 
   useEffect(() => {
     // A fresh Worker isolates model/delegate resources and asynchronous results
-    // from the previous backend, including failed GPU initialization.
+    // from the previous model configuration, including failed GPU initialization.
     const configuration = configurationRef.current
     previousConfigurationRef.current = `${configuration.categories.join(',')}:${configuration.scoreThreshold}`
     trackerRef.current = null
@@ -157,13 +157,13 @@ export function MediaPipeTasksVisionObjectTracker() {
       },
     })
     detectorRef.current = detector
-    const assets = resolveMediaPipeAssetUrls(import.meta.env.BASE_URL, window.location.origin, backend)
+    const assets = resolveMediaPipeAssetUrls(import.meta.env.BASE_URL, window.location.origin, inferenceConfiguration)
     detector.initialize(
       assets.modelUrl,
       assets.wasmRoot,
       configuration.categories,
       configuration.scoreThreshold,
-      backend,
+      inferenceConfiguration,
     )
 
     return () => {
@@ -173,7 +173,7 @@ export function MediaPipeTasksVisionObjectTracker() {
       pendingDrawRef.current = null
       detectorRef.current = null
     }
-  }, [backend, timings])
+  }, [inferenceConfiguration, timings])
 
   useEffect(() => {
     const configurationKey = `${categories.join(',')}:${scoreThreshold}`
@@ -189,7 +189,7 @@ export function MediaPipeTasksVisionObjectTracker() {
       detectorRef.current?.configure(categories, scoreThreshold)
     }, 150)
     return () => window.clearTimeout(timer)
-  }, [categories, scoreThreshold, backend, timings])
+  }, [categories, scoreThreshold, inferenceConfiguration, timings])
 
   useEffect(() => {
     const video = videoRef.current
@@ -309,7 +309,7 @@ export function MediaPipeTasksVisionObjectTracker() {
       detector.beginSession()
       rendererRef.current?.reset()
     }
-  }, [camera.status, camera.stop, detectorStatus, backend, timings, inferenceLongEdge])
+  }, [camera.status, camera.stop, detectorStatus, inferenceConfiguration, timings, inferenceLongEdge])
 
   function handleResult(result: ObjectDetectorResult): void {
     const video = videoRef.current
@@ -341,7 +341,12 @@ export function MediaPipeTasksVisionObjectTracker() {
       return current.length === 1 ? current : current.filter((value) => value !== category)
     })
   }
+  const changeInferenceConfiguration = (nextConfiguration: InferenceConfiguration) => {
+    setInferenceConfiguration(nextConfiguration)
+    setInferenceLongEdge(INFERENCE_CONFIGURATIONS[nextConfiguration].recommendedLongEdge)
+  }
   const cameraActive = camera.status === 'running' || camera.status === 'suspended' || camera.status === 'requesting'
+  const recommendedInferenceLongEdge = INFERENCE_CONFIGURATIONS[inferenceConfiguration].recommendedLongEdge
   const statusText = detectorStatus === 'loading'
     ? 'Loading model'
     : detectorStatus === 'error'
@@ -439,12 +444,12 @@ export function MediaPipeTasksVisionObjectTracker() {
           />
         </div>
         <div className="option-row">
-          <label htmlFor="inference-backend">Inference backend</label>
-          <select id="inference-backend" value={backend} onChange={event => {
+          <label htmlFor="inference-configuration">Inference model</label>
+          <select id="inference-configuration" value={inferenceConfiguration} onChange={event => {
             const value = event.target.value
-            if (isInferenceBackend(value)) setBackend(value)
+            if (isInferenceConfiguration(value)) changeInferenceConfiguration(value)
           }}>
-            {Object.entries(INFERENCE_BACKENDS).map(([value, option]) => (
+            {Object.entries(INFERENCE_CONFIGURATIONS).map(([value, option]) => (
               <option key={value} value={value}>{option.label}</option>
             ))}
           </select>
@@ -477,14 +482,17 @@ export function MediaPipeTasksVisionObjectTracker() {
           </select>
         </div>
 
-
         <div className="option-row">
           <label htmlFor="inference-resolution">Inference resolution</label>
           <select id="inference-resolution" value={inferenceLongEdge} onChange={event => {
             const value = Number(event.target.value)
             if (isInferenceLongEdge(value)) setInferenceLongEdge(value)
           }}>
-            {INFERENCE_LONG_EDGES.map(edge => <option key={edge} value={edge}>{edge} px</option>)}
+            {INFERENCE_LONG_EDGES.map((edge) => (
+              <option key={edge} value={edge}>
+                {edge} px{edge === recommendedInferenceLongEdge ? ' · Recommended' : ''}
+              </option>
+            ))}
           </select>
         </div>
         <RegionEffectControl
@@ -501,8 +509,8 @@ export function MediaPipeTasksVisionObjectTracker() {
         </div>
 
         {(camera.error || detectorError) && <p className="error-message" role="alert">{camera.error ?? detectorError}</p>}
-        {detectorStatus === 'error' && backend === 'gpu-float16' && (
-          <button type="button" onClick={() => setBackend(DEFAULT_INFERENCE_BACKEND)}>Use CPU · int8</button>
+        {detectorStatus === 'error' && INFERENCE_CONFIGURATIONS[inferenceConfiguration].delegate === 'GPU' && (
+          <button type="button" onClick={() => changeInferenceConfiguration(DEFAULT_INFERENCE_CONFIGURATION)}>Use EfficientDet-Lite0 · CPU · int8</button>
         )}
       </aside>
     </main>

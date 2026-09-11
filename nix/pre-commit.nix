@@ -13,6 +13,8 @@ git-hooks.lib.${system}.run {
         "^docs/blob-tracking-visualization\\.png$"
         "^public/mediapipe/models/efficientdet-lite0-int8-v1\\.tflite$"
         "^public/mediapipe/models/efficientdet-lite0-float16-v1\\.tflite$"
+        "^public/mediapipe/models/efficientdet-lite2-int8-v1\\.tflite$"
+        "^public/mediapipe/models/efficientdet-lite2-float16-v1\\.tflite$"
       ];
     };
     node-tests = {
