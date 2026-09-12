@@ -1,4 +1,4 @@
-import type { Detection } from '../shared/tracking/types.ts'
+import type { Detection } from '../../../shared/tracking/types.ts'
 import type { DetectionCategory, InferenceConfiguration } from './config.ts'
 
 export type DetectorWorkerRequest =

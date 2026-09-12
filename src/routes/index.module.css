@@ -1,32 +1,3 @@
-:root {
-  color-scheme: dark;
-  font-family: system-ui, sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-html,
-body {
-  inline-size: 100%;
-  block-size: 100%;
-  margin: 0;
-  background: #000;
-}
-
-body {
-  container-type: size;
-}
-#root {
-  inline-size: 100cqi;
-  block-size: 100cqb;
-}
-
-button {
-  cursor: pointer;
-}
-
 .common {
   max-inline-size: 800px;
   margin-inline: auto;

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
-import { convertMediaPipeDetections } from '../src/components/mediapipe-tasks-vision/convertDetections.ts'
+import { convertMediaPipeDetections } from '../src/routes/mediapipe-tasks-vision/components/convertDetections.ts'
 import {
   DEFAULT_DETECTION_CATEGORIES,
   DEFAULT_INFERENCE_CONFIGURATION,
@@ -16,11 +16,11 @@ import {
   isInferenceLongEdge,
   type InferenceLongEdge,
   TRACK_MISSING_TOLERANCE_MS,
-} from '../src/components/mediapipe-tasks-vision/config.ts'
-import { BlobTracker } from '../src/components/shared/tracking/BlobTracker.ts'
-import type { Detection, TrackerSettings } from '../src/components/shared/tracking/types.ts'
-import { ProcessingTimings, TIMING_SAMPLE_LIMIT } from '../src/components/shared/ProcessingTimings.ts'
-import { TIMING_LABELS } from '../src/components/mediapipe-tasks-vision/timingConfig.ts'
+} from '../src/routes/mediapipe-tasks-vision/components/config.ts'
+import { BlobTracker } from '../src/shared/tracking/BlobTracker.ts'
+import type { Detection, TrackerSettings } from '../src/shared/tracking/types.ts'
+import { ProcessingTimings, TIMING_SAMPLE_LIMIT } from '../src/shared/ProcessingTimings.ts'
+import { TIMING_LABELS } from '../src/routes/mediapipe-tasks-vision/components/timingConfig.ts'
 
 const TRACKER_SETTINGS: TrackerSettings = {
   maxMissingDurationMs: 500,

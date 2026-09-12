@@ -1,8 +1,8 @@
 import {
   timeConstantFrom30FpsRate,
   timeWeight,
-} from '../shared/tracking/timing.ts'
-import { BinaryOpening } from '../shared/tracking/BinaryOpening.ts'
+} from '../../../shared/tracking/timing.ts'
+import { BinaryOpening } from '../../../shared/tracking/BinaryOpening.ts'
 
 type MotionDetectorOptions = {
   threshold: number

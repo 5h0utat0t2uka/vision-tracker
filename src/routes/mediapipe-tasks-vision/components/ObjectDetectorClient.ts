@@ -1,7 +1,7 @@
-import type { Detection } from '../shared/tracking/types.ts'
+import type { Detection } from '../../../shared/tracking/types.ts'
 import type { DetectionCategory, InferenceConfiguration, InferenceLongEdge } from './config.ts'
 import { DEFAULT_INFERENCE_CONFIGURATION, getInferenceSize } from './config.ts'
-import { FrameScheduler } from '../shared/tracking/FrameScheduler.ts'
+import { FrameScheduler } from '../../../shared/tracking/FrameScheduler.ts'
 import type {
   DetectorWorkerRequest,
   DetectorWorkerResponse,

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { captureFrame } from '../src/components/shared/rendering/captureFrame.ts'
+import { captureFrame } from '../src/shared/rendering/captureFrame.ts'
 
 function fixture(width: number, height: number, pixelRatio = 1) {
   const draws: unknown[][] = []

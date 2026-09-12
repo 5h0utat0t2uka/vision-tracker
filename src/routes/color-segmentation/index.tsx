@@ -1,14 +1,17 @@
+import { Page, PageStage } from '../../shared/page'
+import { Popover } from '../../shared/ui/popover'
+import popoverStyles from '../../shared/ui/popover/index.module.css'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useCamera } from '../../hooks/useCamera.ts'
-import { ColorTrackingEngine, INITIAL_COLOR_RESULT } from '../../components/color-segmentation/ColorTrackingEngine.ts'
-import { getColorMode, hexToHsv, isHexColor } from '../../components/color-segmentation/ColorDetector.ts'
-import { COLOR_FPS_OPTIONS, COLOR_METRICS_INTERVAL_MS, COLOR_TIMING_LABELS, DEFAULT_COLOR_FPS, DEFAULT_COLOR_SETTINGS } from '../../components/color-segmentation/config.ts'
-import { FrameScheduler } from '../../components/shared/tracking/FrameScheduler.ts'
-import { ANALYSIS_LONG_EDGES, DEFAULT_ANALYSIS_LONG_EDGE, isAnalysisLongEdge, type AnalysisLongEdge } from '../../components/shared/tracking/analysisConfig.ts'
-import { ProcessingTimings } from '../../components/shared/ProcessingTimings.ts'
-import { CaptureButton } from '../../components/shared/CaptureButton.tsx'
-import { CameraToggleButton, Metric, RegionEffectControl, RangeControl, SettingsIcon } from '../../components/shared/TrackerControls.tsx'
+import { ColorTrackingEngine, INITIAL_COLOR_RESULT } from './components/ColorTrackingEngine.ts'
+import { getColorMode, hexToHsv, isHexColor } from './components/ColorDetector.ts'
+import { COLOR_FPS_OPTIONS, COLOR_METRICS_INTERVAL_MS, COLOR_TIMING_LABELS, DEFAULT_COLOR_FPS, DEFAULT_COLOR_SETTINGS } from './components/config.ts'
+import { FrameScheduler } from '../../shared/tracking/FrameScheduler.ts'
+import { ANALYSIS_LONG_EDGES, DEFAULT_ANALYSIS_LONG_EDGE, isAnalysisLongEdge, type AnalysisLongEdge } from '../../shared/tracking/analysisConfig.ts'
+import { ProcessingTimings } from '../../shared/ProcessingTimings.ts'
+import { CaptureButton } from '../../shared/ui/capture'
+import { CameraToggleButton, Metric, Metrics, GlobalControls, RegionEffectControl, RangeControl, SettingsIcon } from '../../shared/ui/copntrols'
 
 const INITIAL_METRICS = {
   ...INITIAL_COLOR_RESULT,
@@ -149,13 +152,13 @@ export function ColorSegmentationBlobTracker() {
     : camera.status === 'suspended' ? 'Camera interrupted' : 'Idle'
 
   return (
-    <main className="tracker-app">
-      <section className="video-stage" ref={stageRef} aria-label="カメラと色領域の追跡結果">
+    <Page>
+      <PageStage ref={stageRef} aria-label="カメラと色領域の追跡結果">
         <video ref={videoRef} autoPlay muted playsInline aria-hidden="true" />
         <canvas ref={filterRef} className="filter-canvas" data-region-effect={settings.regionEffect} aria-hidden="true" />
         <canvas ref={overlayRef} aria-hidden="true" />
         <canvas ref={analysisRef} className="analysis-canvas" aria-hidden="true" />
-        <dl className="metrics" aria-label="Color tracking metrics">
+        <Metrics aria-label="Color tracking metrics">
           <Metric label="TRACKS" value={metrics.trackCount.toString()} />
           <Metric label="MATCHED AREA" value={`${(metrics.matchedRatio * 100).toFixed(1)}%`} />
           <Metric label="ANALYSIS" value={`${metrics.analysisFps.toFixed(1)} FPS`} />
@@ -165,10 +168,10 @@ export function ColorSegmentationBlobTracker() {
           })}
           <Metric label="BLOBS" value={metrics.detectionCount.toString()} />
           <Metric label="DROPPED" value={metrics.missedVideoFrames.toString()} />
-        </dl>
-      </section>
+        </Metrics>
+      </PageStage>
 
-      <div className="global-controls">
+      <GlobalControls>
         <div>
           <p aria-live="polite">Color Tracker: {statusText}</p>
           <Link to="/">← Back</Link>
@@ -180,20 +183,14 @@ export function ColorSegmentationBlobTracker() {
           onStart={() => void camera.start(selectedDeviceId || undefined)}
           onStop={camera.stop}
         />
-      </div>
+      </GlobalControls>
 
       {camera.status === 'running' && (
         <CaptureButton videoRef={videoRef} overlayRef={overlayRef} />
       )}
 
-      <aside id="color-settings" className="control-panel" aria-labelledby="color-settings-title" popover="auto">
-        <div className="popover-heading">
-          <h2 id="color-settings-title">Setting</h2>
-          <button type="button" popoverTarget="color-settings" popoverTargetAction="hide" aria-label="設定を閉じる">
-            <svg width={24} height={24} viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L17.94 6M18 18L6.06 6"></path></svg>
-          </button>
-        </div>
-        <div className="control-list">
+      <Popover id="color-settings" title="Setting">
+        <div className={popoverStyles.list}>
           <RangeControl id="hue-tolerance" label="Hue tolerance" min={0} max={180} step={1}
             hint={colorMode === 'chromatic' ? '大きいほど近い色相も検出' : '白・灰色・黒に近い色では色相を使いません'}
             disabled={colorMode !== 'chromatic'} value={settings.hueTolerance} displayValue={`±${settings.hueTolerance}°`}
@@ -209,7 +206,7 @@ export function ColorSegmentationBlobTracker() {
             value={settings.minBlobAreaRatio * 100} displayValue={`${(settings.minBlobAreaRatio * 100).toFixed(2)}%`}
             onChange={percentage => setSettings(current => ({ ...current, minBlobAreaRatio: percentage / 100 }))} />
         </div>
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="target-color">Target color</label>
           <input id="target-color" type="color" value={settings.targetColor} aria-describedby="target-color-hint" onChange={event => {
             const value = event.target.value
@@ -218,7 +215,7 @@ export function ColorSegmentationBlobTracker() {
           {/*<output htmlFor="target-color">{settings.targetColor}</output>*/}
         </div>
 
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="color-camera">Camera</label>
           <select id="color-camera" value={camera.info?.deviceId ?? selectedDeviceId} onChange={event => {
             const deviceId = event.target.value
@@ -233,13 +230,13 @@ export function ColorSegmentationBlobTracker() {
             ))}
           </select>
         </div>
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="color-fps">Frame rate limit</label>
           <select id="color-fps" value={targetFps} onChange={event => { setTargetFps(Number(event.target.value)); engineRef.current?.resetTimings() }}>
             {COLOR_FPS_OPTIONS.map(fps => <option key={fps} value={fps}>{fps} fps</option>)}
           </select>
         </div>
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="color-resolution">Analysis resolution</label>
           <select id="color-resolution" value={longEdge} onChange={event => {
             const value = Number(event.target.value)
@@ -260,7 +257,7 @@ export function ColorSegmentationBlobTracker() {
           }}
         />
 
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="color-trail">Trail lines</label>
           <input id="color-trail" type="checkbox" checked={settings.showTrail} onChange={event => {
             const showTrail = event.target.checked
@@ -269,8 +266,8 @@ export function ColorSegmentationBlobTracker() {
           }} />
         </div>
 
-        {(camera.error || engineError) && <p className="error-message" role="alert">{camera.error ?? engineError}</p>}
-      </aside>
-    </main>
+        {(camera.error || engineError) && <p className={popoverStyles.error} role="alert">{camera.error ?? engineError}</p>}
+      </Popover>
+    </Page>
   )
 }

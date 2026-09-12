@@ -1,11 +1,11 @@
-import './App.css'
-import { RegionEffectFilters } from './components/shared/rendering/RegionEffectFilters'
+import { RegionEffectFilters } from '../shared/rendering/RegionEffectFilters'
 import { Link, Route, Routes } from 'react-router'
-import { BackgroundSubtractionBlobTracker } from './routes/background-subtraction'
-import { ColorSegmentationBlobTracker } from './routes/color-segmentation'
-import { MediaPipeTasksVisionObjectTracker } from './routes/mediapipe-tasks-vision'
+import { BackgroundSubtractionBlobTracker } from '../routes/background-subtraction'
+import { ColorSegmentationBlobTracker } from '../routes/color-segmentation'
+import { MediaPipeTasksVisionObjectTracker } from '../routes/mediapipe-tasks-vision'
+import styles from './index.module.css'
 
-function App() {
+export default function App() {
   return (
     <>
       <RegionEffectFilters />
@@ -23,7 +23,7 @@ function App() {
 
 function Home() {
   return (
-    <main className='common'>
+    <main className={styles.common}>
       <section>
         <h1>Vision Tracker</h1>
         <p>This React app compares three client-side detection and tracking approaches: background subtraction, HSV color segmentation, and MediaPipe Tasks Vision. <br />Camera frames are processed locally and are not uploaded.</p>
@@ -60,7 +60,7 @@ function Home() {
 
 function Privacy() {
   return (
-    <main className='common'>
+    <main className={styles.common}>
       <section>
         <h1>Privacy</h1>
         <p>すべてのページのカメラ映像はブラウザ上で処理され、外部へは送信されません。<br /><a href="https://www.npmjs.com/package/@mediapipe/tasks-vision" target="_blank" rel="noopener noreferrer">@mediapipe/tasks-vision</a> を利用する <Link to="/mediapipe-tasks-vision">MediaPipe Tasks Vision Object Detection Tracking</Link> のページでは、性能および利用状況に関するメトリクスが Google へ送信されます。</p>
@@ -72,7 +72,7 @@ function Privacy() {
 }
 function NotFoundPage() {
   return (
-    <main className='common'>
+    <main className={styles.common}>
       <section>
         <h1>404</h1>
         <p>ページが見つかりません</p>
@@ -81,5 +81,3 @@ function NotFoundPage() {
     </main>
   )
 }
-
-export default App

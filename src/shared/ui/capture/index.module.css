@@ -1,0 +1,28 @@
+.button {
+  position: fixed;
+  inset-inline-end: 0;
+  inset-block-end: max(1rem, env(safe-area-inset-bottom));
+  margin: 1.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1em;
+  text-transform: uppercase;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: red;
+  > span {
+    font-size: 0.6rem;
+    font-family: ui-monospace, monospace;
+  }
+}
+.error {
+  position: fixed;
+  z-index: 10;
+  inset-block-start: 1rem;
+  inset-inline: 1rem;
+  padding: 0.75rem;
+  color: #fff;
+  background: #800;
+}

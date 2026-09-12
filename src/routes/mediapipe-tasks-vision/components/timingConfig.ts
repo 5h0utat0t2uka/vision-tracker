@@ -1,4 +1,4 @@
-import type { TimingSummary as Summary } from '../shared/ProcessingTimings.ts'
+import type { TimingSummary as Summary } from '../../../shared/ProcessingTimings.ts'
 export const TIMING_LABELS = {
   capture: 'CAPTURE',
   roundTrip: 'WORKER ROUND TRIP',

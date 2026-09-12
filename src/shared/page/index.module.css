@@ -1,0 +1,33 @@
+.page,
+.stage {
+  position: fixed;
+  inset: 0;
+  inline-size: 100cqi;
+  block-size: 100cqb;
+}
+
+.page {
+  overflow: hidden;
+  background: #000;
+}
+
+.stage {
+  overflow: hidden;
+}
+
+.stage video,
+.stage > canvas:not(:global(.analysis-canvas)) {
+  position: absolute;
+  inset: 0;
+  inline-size: 100cqi;
+  block-size: 100cqb;
+}
+
+.stage video {
+  object-fit: cover;
+}
+
+.stage > canvas:not(:global(.analysis-canvas)) {
+  z-index: 1;
+  pointer-events: none;
+}

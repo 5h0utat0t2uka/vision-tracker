@@ -1,0 +1,51 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  background: #000;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  container-type: size;
+  #root {
+    inline-size: 100cqi;
+    block-size: 100cqb;
+  }
+}
+
+button {
+  cursor: pointer;
+}
+
+.filter-canvas[data-region-effect='grayscale'] {
+  filter: grayscale(1);
+}
+.filter-canvas[data-region-effect='greenscale'] {
+  filter: grayscale(1) sepia(1) hue-rotate(1rad) contrast(1.5) saturate(2);
+}
+.filter-canvas[data-region-effect='invert'] {
+  filter: invert(1);
+}
+.filter-canvas[data-region-effect='false-color-filter'] {
+  filter: url(#region-false-color);
+}
+.region-effect-definitions {
+  position: absolute;
+  pointer-events: none;
+}
+.filter-canvas[data-region-effect='none'] {
+  display: none;
+}
+.analysis-canvas {
+  display: none;
+}

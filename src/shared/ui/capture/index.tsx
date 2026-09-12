@@ -1,5 +1,6 @@
 import { useRef, useState, type RefObject } from 'react'
-import { captureFrame } from './rendering/captureFrame.ts'
+import { captureFrame } from '../../rendering/captureFrame.ts'
+import styles from './index.module.css'
 
 type CaptureButtonProps = {
   videoRef: RefObject<HTMLVideoElement | null>
@@ -44,10 +45,10 @@ export function CaptureButton({ videoRef, overlayRef }: CaptureButtonProps) {
 
   return (
     <>
-      {error && <p className="capture-error" role="alert">{error}</p>}
+      {error && <p className={styles.error} role="alert">{error}</p>}
       <button
         type="button"
-        className="capture-button"
+        className={styles.button}
         aria-label="Capture PNG"
         title="Capture PNG"
         disabled={saving}

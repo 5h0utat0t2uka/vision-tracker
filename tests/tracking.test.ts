@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { ConnectedComponents } from '../src/components/shared/tracking/ConnectedComponents.ts'
-import { MotionDetector } from '../src/components/background-subtraction/MotionDetector.ts'
-import type { TrackingSettings } from '../src/components/background-subtraction/types.ts'
-import { BlobTracker } from '../src/components/shared/tracking/BlobTracker.ts'
-import { FrameScheduler } from '../src/components/shared/tracking/FrameScheduler.ts'
-import { timeConstantFrom30FpsRate } from '../src/components/shared/tracking/timing.ts'
-import type { Detection } from '../src/components/shared/tracking/types.ts'
+import { ConnectedComponents } from '../src/shared/tracking/ConnectedComponents.ts'
+import { MotionDetector } from '../src/routes/background-subtraction/components/MotionDetector.ts'
+import type { TrackingSettings } from '../src/routes/background-subtraction/components/types.ts'
+import { BlobTracker } from '../src/shared/tracking/BlobTracker.ts'
+import { FrameScheduler } from '../src/shared/tracking/FrameScheduler.ts'
+import { timeConstantFrom30FpsRate } from '../src/shared/tracking/timing.ts'
+import type { Detection } from '../src/shared/tracking/types.ts'
 
 const SETTINGS: TrackingSettings = {
   motionThreshold: 28,
