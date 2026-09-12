@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import test, { type TestContext } from 'node:test'
-import { ObjectDetectorClient, type ObjectDetectorResult } from '../src/components/mediapipe-tasks-vision/ObjectDetectorClient.ts'
-import type { DetectorWorkerRequest, DetectorWorkerResponse } from '../src/components/mediapipe-tasks-vision/protocol.ts'
-import { resolveMediaPipeAssetUrls, type InferenceConfiguration, type DetectionCategory } from '../src/components/mediapipe-tasks-vision/config.ts'
+import { ObjectDetectorClient, type ObjectDetectorResult } from '../src/routes/mediapipe-tasks-vision/components/ObjectDetectorClient.ts'
+import type { DetectorWorkerRequest, DetectorWorkerResponse } from '../src/routes/mediapipe-tasks-vision/components/protocol.ts'
+import { resolveMediaPipeAssetUrls, type InferenceConfiguration, type DetectionCategory } from '../src/routes/mediapipe-tasks-vision/components/config.ts'
 
 type FrameRequest = Extract<DetectorWorkerRequest, { type: 'frame' }>
 

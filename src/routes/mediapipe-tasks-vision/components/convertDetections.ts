@@ -1,4 +1,4 @@
-import type { Detection } from '../shared/tracking/types.ts'
+import type { Detection } from '../../../shared/tracking/types.ts'
 import type { DetectionCategory } from './config.ts'
 
 export type MediaPipeDetectionLike = {

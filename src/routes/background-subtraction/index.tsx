@@ -1,29 +1,30 @@
+import { Page, PageStage } from '../../shared/page'
+import { Popover } from '../../shared/ui/popover'
+import popoverStyles from '../../shared/ui/popover/index.module.css'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useCamera } from '../../hooks/useCamera.ts'
 import type { CameraStatus } from '../../camera/CameraSession.ts'
-import {
-  TrackingEngine,
-  BACKGROUND_TIMING_LABELS,
-  type FrameResult,
-} from '../../components/background-subtraction/TrackingEngine.ts'
-import type { TrackingSettings } from '../../components/background-subtraction/types.ts'
-import { FrameScheduler } from '../../components/shared/tracking/FrameScheduler.ts'
+import { type FrameResult, BACKGROUND_TIMING_LABELS, TrackingEngine } from './components/TrackingEngine.ts'
+import type { TrackingSettings } from './components/types.ts'
+import { FrameScheduler } from '../../shared/tracking/FrameScheduler.ts'
 import {
   ANALYSIS_LONG_EDGES,
   DEFAULT_ANALYSIS_LONG_EDGE,
   isAnalysisLongEdge,
   type AnalysisLongEdge,
-} from '../../components/shared/tracking/analysisConfig.ts'
+} from '../../shared/tracking/analysisConfig.ts'
 import {
   CameraToggleButton,
   Metric,
+  Metrics,
+  GlobalControls,
   RegionEffectControl,
   RangeControl,
   SettingsIcon,
-} from '../../components/shared/TrackerControls.tsx'
-import { CaptureButton } from '../../components/shared/CaptureButton.tsx'
-import { ProcessingTimings, type TimingSummary } from '../../components/shared/ProcessingTimings.ts'
+} from '../../shared/ui/copntrols'
+import { CaptureButton } from '../../shared/ui/capture'
+import { ProcessingTimings, type TimingSummary } from '../../shared/ProcessingTimings.ts'
 
 const DEFAULT_SETTINGS: TrackingSettings = {
   motionThreshold: 70,
@@ -57,7 +58,7 @@ export function BackgroundSubtractionBlobTracker() {
   const analysisCanvasRef = useRef<HTMLCanvasElement>(null)
   const filterCanvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
-  const stageRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLElement>(null)
   const engineRef = useRef<TrackingEngine | null>(null)
   const settingsRef = useRef(DEFAULT_SETTINGS)
   const targetFpsRef = useRef(30)
@@ -234,8 +235,8 @@ export function BackgroundSubtractionBlobTracker() {
   //   : null
 
   return (
-    <main className="tracker-app">
-      <section className="video-stage" ref={stageRef} aria-label="カメラと追跡結果">
+    <Page>
+      <PageStage ref={stageRef} aria-label="カメラと追跡結果">
         <video ref={videoRef} autoPlay muted playsInline aria-hidden="true" />
         <canvas
           ref={filterCanvasRef}
@@ -257,7 +258,7 @@ export function BackgroundSubtractionBlobTracker() {
           </div>
         )}*/}
 
-        <dl className="metrics" aria-label="Tracking metrics">
+        <Metrics aria-label="Tracking metrics">
           <Metric label="TRACKS" value={metrics.trackCount.toString()} />
           <Metric
             label="MOTION"
@@ -273,10 +274,10 @@ export function BackgroundSubtractionBlobTracker() {
           })}
           <Metric label="BLOBS" value={metrics.detectionCount.toString()} />
           <Metric label="DROPPED" value={metrics.missedVideoFrames.toString()} />
-        </dl>
-      </section>
+        </Metrics>
+      </PageStage>
 
-      <div className='global-controls'>
+      <GlobalControls>
         <div>
           <p aria-live="polite">Blob Tracker: {statusText}</p>
           <Link to="/">← Back</Link>
@@ -294,31 +295,15 @@ export function BackgroundSubtractionBlobTracker() {
           onStart={() => void camera.start(selectedDeviceId || undefined)}
           onStop={camera.stop}
         />
-      </div>
+      </GlobalControls>
 
       {camera.status === 'running' && (
         <CaptureButton videoRef={videoRef} overlayRef={overlayCanvasRef} />
       )}
 
-      <aside
-        id="tracking-settings"
-        className="control-panel"
-        aria-labelledby="settings-title"
-        popover="auto"
-      >
-        <div className="popover-heading">
-          <h2 id="settings-title">Setting</h2>
-          <button
-            type="button"
-            popoverTarget="tracking-settings"
-            popoverTargetAction="hide"
-            aria-label="設定を閉じる"
-          >
-            <svg width={24} height={24} viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L17.94 6M18 18L6.06 6"></path></svg>
-          </button>
-        </div>
+      <Popover id="tracking-settings" title="Setting">
 
-        <div className="control-list">
+        <div className={popoverStyles.list}>
           <RangeControl
             id="motion-threshold"
             label="Motion threshold"
@@ -365,7 +350,7 @@ export function BackgroundSubtractionBlobTracker() {
             }
           />
         </div>
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="camera-device">Camera</label>
           <select
             id="camera-device"
@@ -384,7 +369,7 @@ export function BackgroundSubtractionBlobTracker() {
             ))}
           </select>
         </div>
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="analysis-rate">Frame rate limit</label>
           <select
             id="analysis-rate"
@@ -396,7 +381,7 @@ export function BackgroundSubtractionBlobTracker() {
             <option value={15}>15 fps</option>
           </select>
         </div>
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="analysis-resolution">Analysis resolution</label>
           <select
             id="analysis-resolution"
@@ -427,7 +412,7 @@ export function BackgroundSubtractionBlobTracker() {
               engineRef.current?.resetTimings();
             }}
         />
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="show-trail">Trail lines</label>
           <input
             id="show-trail"
@@ -443,12 +428,12 @@ export function BackgroundSubtractionBlobTracker() {
         </div>
 
         {(camera.error || engineError) && (
-          <p className="error-message" role="alert">
+          <p className={popoverStyles.error} role="alert">
             {camera.error ?? engineError}
           </p>
         )}
-      </aside>
-    </main>
+      </Popover>
+    </Page>
   )
 }
 

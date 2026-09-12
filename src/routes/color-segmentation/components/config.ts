@@ -1,5 +1,5 @@
-import type { TrackerSettings } from '../shared/tracking/types.ts'
-import type { RegionEffect } from '../shared/rendering/regionEffect.ts';
+import type { TrackerSettings } from '../../../shared/tracking/types.ts'
+import type { RegionEffect } from '../../../shared/rendering/regionEffect.ts';
 
 export type ColorDetectionSettings = {
   targetColor: string

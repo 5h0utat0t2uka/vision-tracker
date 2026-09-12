@@ -1,4 +1,4 @@
-import { BinaryOpening } from '../shared/tracking/BinaryOpening.ts'
+import { BinaryOpening } from '../../../shared/tracking/BinaryOpening.ts'
 import { ACHROMATIC_SATURATION_LIMIT, DARK_VALUE_LIMIT, type ColorDetectionSettings } from './config.ts'
 
 export type HsvColor = { h: number; s: number; v: number }

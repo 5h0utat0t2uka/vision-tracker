@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { FALSE_COLOR_BRIGHTNESS_WEIGHTS, FALSE_COLOR_STOPS, FALSE_COLOR_PALETTE, FALSE_COLOR_FILTER_TABLES, FALSE_COLOR_FILTER_MATRIX } from '../src/components/shared/rendering/falseColor.ts'
-import { FalseColorRenderer } from '../src/components/shared/rendering/FalseColorRenderer.ts'
-import type { Track } from '../src/components/shared/tracking/types.ts'
+import { FALSE_COLOR_BRIGHTNESS_WEIGHTS, FALSE_COLOR_STOPS, FALSE_COLOR_PALETTE, FALSE_COLOR_FILTER_TABLES, FALSE_COLOR_FILTER_MATRIX } from '../src/shared/rendering/falseColor.ts'
+import { FalseColorRenderer } from '../src/shared/rendering/FalseColorRenderer.ts'
+import type { Track } from '../src/shared/tracking/types.ts'
 import { webglFixture } from './helpers/webgl.ts'
 
 test('False colorのRGBAテクスチャは配色定数と不均等な区間の補間を維持する', () => {

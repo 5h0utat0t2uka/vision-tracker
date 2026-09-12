@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { webglFixture } from './helpers/webgl.ts'
-import { ColorDetector, getColorMode, hexToHsv, isHexColor, rgbToHsv } from '../src/components/color-segmentation/ColorDetector.ts'
-import { ColorTrackingEngine } from '../src/components/color-segmentation/ColorTrackingEngine.ts'
-import { DEFAULT_COLOR_SETTINGS, type ColorTrackingSettings } from '../src/components/color-segmentation/config.ts'
-import { ConnectedComponents } from '../src/components/shared/tracking/ConnectedComponents.ts'
-import { BlobTracker } from '../src/components/shared/tracking/BlobTracker.ts'
+import { ColorDetector, getColorMode, hexToHsv, isHexColor, rgbToHsv } from '../src/routes/color-segmentation/components/ColorDetector.ts'
+import { ColorTrackingEngine } from '../src/routes/color-segmentation/components/ColorTrackingEngine.ts'
+import { DEFAULT_COLOR_SETTINGS, type ColorTrackingSettings } from '../src/routes/color-segmentation/components/config.ts'
+import { ConnectedComponents } from '../src/shared/tracking/ConnectedComponents.ts'
+import { BlobTracker } from '../src/shared/tracking/BlobTracker.ts'
 
 function frame(width: number, height: number, paint: (x: number, y: number) => readonly number[]): ImageData {
   const data = new Uint8ClampedArray(width * height * 4)

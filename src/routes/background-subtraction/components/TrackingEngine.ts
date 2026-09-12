@@ -1,8 +1,8 @@
-import { BlobTracker } from '../shared/tracking/BlobTracker.ts'
-import { OverlayRenderer } from '../shared/tracking/OverlayRenderer.ts'
-import { MAX_FRAME_GAP_MS } from '../shared/tracking/timing.ts'
-import { ProcessingTimings } from '../shared/ProcessingTimings.ts'
-import { ConnectedComponents } from '../shared/tracking/ConnectedComponents.ts'
+import { BlobTracker } from '../../../shared/tracking/BlobTracker.ts'
+import { OverlayRenderer } from '../../../shared/tracking/OverlayRenderer.ts'
+import { MAX_FRAME_GAP_MS } from '../../../shared/tracking/timing.ts'
+import { ProcessingTimings } from '../../../shared/ProcessingTimings.ts'
+import { ConnectedComponents } from '../../../shared/tracking/ConnectedComponents.ts'
 import { MotionDetector } from './MotionDetector.ts'
 import type { TrackingSettings } from './types.ts'
 import {
@@ -11,7 +11,7 @@ import {
   isAnalysisLongEdge,
   getAnalysisSize,
   type AnalysisLongEdge,
-} from '../shared/tracking/analysisConfig.ts'
+} from '../../../shared/tracking/analysisConfig.ts'
 
 export const BACKGROUND_TIMING_LABELS = {
   capture: 'CAPTURE',

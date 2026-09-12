@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { TrackingEngine } from '../src/components/background-subtraction/TrackingEngine.ts'
+import { TrackingEngine } from '../src/routes/background-subtraction/components/TrackingEngine.ts'
 import {
   ANALYSIS_LONG_EDGES,
   getAnalysisSize,
@@ -8,12 +8,12 @@ import {
   OPENING_KERNEL_SIZES,
   isAnalysisLongEdge,
   type AnalysisLongEdge,
-} from '../src/components/shared/tracking/analysisConfig.ts'
-import type { TrackingSettings } from '../src/components/background-subtraction/types.ts'
-import { OverlayRenderer } from '../src/components/shared/tracking/OverlayRenderer.ts'
-import { BlobTracker } from '../src/components/shared/tracking/BlobTracker.ts'
-import type { Rect, Track } from '../src/components/shared/tracking/types.ts'
-import { isRegionEffect, REGION_EFFECT_OPTIONS } from '../src/components/shared/rendering/regionEffect.ts'
+} from '../src/shared/tracking/analysisConfig.ts'
+import type { TrackingSettings } from '../src/routes/background-subtraction/components/types.ts'
+import { OverlayRenderer } from '../src/shared/tracking/OverlayRenderer.ts'
+import { BlobTracker } from '../src/shared/tracking/BlobTracker.ts'
+import type { Rect, Track } from '../src/shared/tracking/types.ts'
+import { isRegionEffect, REGION_EFFECT_OPTIONS } from '../src/shared/rendering/regionEffect.ts'
 import { webglFixture } from './helpers/webgl.ts'
 
 const SETTINGS: TrackingSettings = {

@@ -1,17 +1,22 @@
+import { Page, PageStage } from '../../shared/page'
+import { Popover } from '../../shared/ui/popover'
+import popoverStyles from '../../shared/ui/popover/index.module.css'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useCamera } from '../../hooks/useCamera.ts'
-import { BlobTracker } from '../../components/shared/tracking/BlobTracker.ts'
-import { OverlayRenderer } from '../../components/shared/tracking/OverlayRenderer.ts'
-import type { TrackerSettings } from '../../components/shared/tracking/types.ts'
-import type { RegionEffect } from '../../components/shared/rendering/regionEffect.ts';
+import { BlobTracker } from '../../shared/tracking/BlobTracker.ts'
+import { OverlayRenderer } from '../../shared/tracking/OverlayRenderer.ts'
+import type { TrackerSettings } from '../../shared/tracking/types.ts'
+import type { RegionEffect } from '../../shared/rendering/regionEffect.ts';
 import {
   CameraToggleButton,
   Metric,
+  Metrics,
+  GlobalControls,
   RegionEffectControl,
   RangeControl,
   SettingsIcon,
-} from '../../components/shared/TrackerControls.tsx'
+} from '../../shared/ui/copntrols'
 import {
   DEFAULT_DETECTION_CATEGORIES,
   DEFAULT_INFERENCE_CONFIGURATION,
@@ -30,14 +35,11 @@ import {
   TRACK_MISSING_TOLERANCE_MS,
   resolveMediaPipeAssetUrls,
   type DetectionCategory,
-} from '../../components/mediapipe-tasks-vision/config.ts'
-import {
-  ObjectDetectorClient,
-  type ObjectDetectorResult,
-} from '../../components/mediapipe-tasks-vision/ObjectDetectorClient.ts'
-import { ProcessingTimings } from '../../components/shared/ProcessingTimings.ts'
-import { CaptureButton } from '../../components/shared/CaptureButton.tsx'
-import { TIMING_LABELS, type TimingSummary } from '../../components/mediapipe-tasks-vision/timingConfig.ts'
+} from './components/config.ts'
+import { type ObjectDetectorResult, ObjectDetectorClient } from './components/ObjectDetectorClient.ts'
+import { ProcessingTimings } from '../../shared/ProcessingTimings.ts'
+import { CaptureButton } from '../../shared/ui/capture'
+import { TIMING_LABELS, type TimingSummary } from './components/timingConfig.ts'
 
 const TRACKER_SETTINGS: TrackerSettings = {
   missingTimeBasis: 'first-miss',
@@ -362,13 +364,13 @@ export function MediaPipeTasksVisionObjectTracker() {
             : 'Ready'
 
   return (
-    <main className="tracker-app">
-      <section className="video-stage" ref={stageRef} aria-label="カメラとAI追跡結果">
+    <Page>
+      <PageStage ref={stageRef} aria-label="カメラとAI追跡結果">
         <video ref={videoRef} autoPlay muted playsInline aria-hidden="true" />
         <canvas ref={filterCanvasRef} className="filter-canvas" data-region-effect={regionEffect} aria-hidden="true" />
         <canvas ref={overlayCanvasRef} aria-hidden="true" />
 
-        <dl className="metrics" aria-label="AI tracking metrics">
+        <Metrics aria-label="AI tracking metrics">
           <Metric label="TRACKS" value={metrics.trackCount.toString()} />
           <Metric label="OBJECTS" value={metrics.detectionCount.toString()} />
           <Metric label="CAMERA" value={`${metrics.cameraFps.toFixed(1)} FPS`} />
@@ -385,10 +387,10 @@ export function MediaPipeTasksVisionObjectTracker() {
               />
             )
           })}
-        </dl>
-      </section>
+        </Metrics>
+      </PageStage>
 
-      <div className="global-controls">
+      <GlobalControls>
         <div>
           <p aria-live="polite">Object Tracker: {statusText}</p>
           <Link to="/">← Back</Link>
@@ -402,21 +404,15 @@ export function MediaPipeTasksVisionObjectTracker() {
           onStart={() => void camera.start(selectedDeviceId || undefined)}
           onStop={camera.stop}
         />
-      </div>
+      </GlobalControls>
 
       {camera.status === 'running' && (
         <CaptureButton videoRef={videoRef} overlayRef={overlayCanvasRef} />
       )}
 
-      <aside id="mediapipe-settings" className="control-panel" aria-labelledby="mediapipe-settings-title" popover="auto">
-        <div className="popover-heading">
-          <h2 id="mediapipe-settings-title">Setting</h2>
-          <button type="button" popoverTarget="mediapipe-settings" popoverTargetAction="hide" aria-label="設定を閉じる">
-            <svg width={24} height={24} viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L17.94 6M18 18L6.06 6"></path></svg>
-          </button>
-        </div>
-        <div className="control-list">
-          <fieldset className="category-options">
+      <Popover id="mediapipe-settings" title="Setting">
+        <div className={popoverStyles.list}>
+          <fieldset className={popoverStyles.categories}>
             <legend>Detection targets</legend>
             {DETECTION_CATEGORIES.map((category) => (
               <label key={category.value}>
@@ -443,7 +439,7 @@ export function MediaPipeTasksVisionObjectTracker() {
             onChange={setScoreThreshold}
           />
         </div>
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="inference-configuration">Inference model</label>
           <select id="inference-configuration" value={inferenceConfiguration} onChange={event => {
             const value = event.target.value
@@ -455,7 +451,7 @@ export function MediaPipeTasksVisionObjectTracker() {
           </select>
         </div>
 
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="camera-device">Camera</label>
           <select
             id="camera-device"
@@ -475,14 +471,14 @@ export function MediaPipeTasksVisionObjectTracker() {
           </select>
         </div>
 
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="inference-rate">Inference FPS</label>
           <select id="inference-rate" value={inferenceFps} onChange={(event) => setInferenceFps(Number(event.target.value))}>
             {INFERENCE_FPS_OPTIONS.map((fps) => <option key={fps} value={fps}>{fps} fps</option>)}
           </select>
         </div>
 
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="inference-resolution">Inference resolution</label>
           <select id="inference-resolution" value={inferenceLongEdge} onChange={event => {
             const value = Number(event.target.value)
@@ -503,16 +499,16 @@ export function MediaPipeTasksVisionObjectTracker() {
             timings.reset();
           }}
         />
-        <div className="option-row">
+        <div className={popoverStyles.row}>
           <label htmlFor="show-ai-trail">Trail lines</label>
           <input id="show-ai-trail" type="checkbox" checked={showTrail} onChange={(event) => setShowTrail(event.target.checked)} />
         </div>
 
-        {(camera.error || detectorError) && <p className="error-message" role="alert">{camera.error ?? detectorError}</p>}
+        {(camera.error || detectorError) && <p className={popoverStyles.error} role="alert">{camera.error ?? detectorError}</p>}
         {detectorStatus === 'error' && INFERENCE_CONFIGURATIONS[inferenceConfiguration].delegate === 'GPU' && (
           <button type="button" onClick={() => changeInferenceConfiguration(DEFAULT_INFERENCE_CONFIGURATION)}>Use EfficientDet-Lite0 · CPU · int8</button>
         )}
-      </aside>
-    </main>
+      </Popover>
+    </Page>
   )
 }
