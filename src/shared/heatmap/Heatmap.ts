@@ -4,7 +4,25 @@ import { MAX_FRAME_GAP_MS } from '../tracking/timing.ts'
 export type HeatmapMode = 'occupancy' | 'movement'
 export const HEATMAP_SCALES = { occupancy: 30, movement: 1 } as const
 const GRID_LONG_EDGE = 128
-const KERNEL = [1, 4, 6, 4, 1]
+// Radius in heatmap cells (not screen pixels). 0 disables blur; larger values soften edges.
+export const HEATMAP_BLUR_RADIUS = { occupancy: 6, movement: 2 } as const
+const BLUR_KERNELS = {
+  occupancy: createBlurKernel(HEATMAP_BLUR_RADIUS.occupancy),
+  movement: createBlurKernel(HEATMAP_BLUR_RADIUS.movement),
+}
+
+function createBlurKernel(radius: number): number[] {
+  if (!Number.isInteger(radius) || radius < 0 || radius > GRID_LONG_EDGE) {
+    throw new RangeError(`Heatmap blur radius must be an integer between 0 and ${GRID_LONG_EDGE}.`)
+  }
+  // Binomial weights: radius 2 reproduces [1, 4, 6, 4, 1] / 16.
+  const kernel = [1]
+  for (let i = 1; i <= radius * 2; i++) {
+    kernel.push(kernel[i - 1] * (radius * 2 - i + 1) / i)
+  }
+  const total = kernel.reduce((sum, weight) => sum + weight, 0)
+  return kernel.map(weight => weight / total)
+}
 const COLORS = [[0, 80, 255], [0, 220, 255], [0, 230, 80], [255, 230, 0], [255, 35, 0]]
 type Observation = { time: number; box: Rect; x: number; y: number }
 
@@ -12,7 +30,7 @@ type Observation = { time: number; box: Rect; x: number; y: number }
 export class Heatmap {
   visible = false
   mode: HeatmapMode = 'occupancy'
-  opacity = 0.55
+  opacity = 0.4
   width = 0
   height = 0
   private occupancy = new Float64Array(0)
@@ -114,12 +132,14 @@ export class Heatmap {
       // Blur scalar values before coloring; colors themselves are never accumulated.
       const values = this.mode === 'occupancy' ? this.occupancy : this.movement
       const smoothed = new Float64Array(values.length)
+      const kernel = BLUR_KERNELS[this.mode]
+      const radius = (kernel.length - 1) / 2
       for (let row = 0; row < this.height; row++) {
         for (let column = 0; column < this.width; column++) {
           let value = 0
-          for (let k = -2; k <= 2; k++) {
+          for (let k = -radius; k <= radius; k++) {
             const sx = Math.max(0, Math.min(this.width - 1, column + k))
-            value += values[row * this.width + sx] * KERNEL[k + 2] / 16
+            value += values[row * this.width + sx] * kernel[k + radius]
           }
           smoothed[row * this.width + column] = value
         }
@@ -127,9 +147,9 @@ export class Heatmap {
       for (let row = 0; row < this.height; row++) {
         for (let column = 0; column < this.width; column++) {
           let value = 0
-          for (let k = -2; k <= 2; k++) {
+          for (let k = -radius; k <= radius; k++) {
             const sy = Math.max(0, Math.min(this.height - 1, row + k))
-            value += smoothed[sy * this.width + column] * KERNEL[k + 2] / 16
+            value += smoothed[sy * this.width + column] * kernel[k + radius]
           }
           const intensity = Math.min(1, value / HEATMAP_SCALES[this.mode])
           const offset = (row * this.width + column) * 4

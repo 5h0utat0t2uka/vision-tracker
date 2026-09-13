@@ -1,9 +1,20 @@
 import type { Detection, Rect, Track, TrackerSettings } from './types.ts'
+import { OneEuroFilter } from './OneEuroFilter.ts'
 import { timeConstantFrom30FpsRate, timeWeight } from './timing.ts'
 
 const VELOCITY_TIME_CONSTANT_MS = timeConstantFrom30FpsRate(0.4)
 const LOST_VELOCITY_TIME_CONSTANT_MS = timeConstantFrom30FpsRate(0.1)
 const SEARCH_EXPANSION_DURATION_MS = 1000 * 4 / 30
+
+export const TRAIL_SMOOTHING = {
+  // Lower values suppress more slow-motion jitter, but increase visual lag.
+  minCutoffHz: 0.8,
+  // Higher values follow fast motion more closely. Coordinates use diagonal units.
+  beta: 8,
+  derivativeCutoffHz: 1,
+  // Do not connect observations across long interruptions, even with the same ID.
+  resetGapMs: 1000,
+} as const
 
 type MatchCandidate = {
   trackIndex: number
@@ -17,6 +28,7 @@ export class BlobTracker {
   private tracks: Track[] = []
   private nextId = 1
   private previousTimestampMs: number | null = null
+  private trailFilters = new WeakMap<Track, { x: OneEuroFilter; y: OneEuroFilter }>()
 
   constructor(width: number, height: number) {
     this.width = width
@@ -27,6 +39,7 @@ export class BlobTracker {
     this.tracks = []
     this.nextId = 1
     this.previousTimestampMs = null
+    this.trailFilters = new WeakMap()
   }
 
   /** Read the latest observation state without advancing time or adding hits. */
@@ -167,8 +180,9 @@ export class BlobTracker {
       lastObservedAtMs: timestampMs,
       hits: 1,
       state: 'tentative',
-      trail: [{ ...detection.center, timestampMs }],
+      trail: [],
     }
+    this.appendTrail(track, detection, timestampMs)
     this.nextId += 1
     return track
   }
@@ -184,6 +198,8 @@ export class BlobTracker {
     const measuredVelocityY = (detection.center.y - track.lastObservedCenter.y) / elapsedSeconds
     const weight = timeWeight(elapsedMs, VELOCITY_TIME_CONSTANT_MS)
 
+    // Only the displayed trail is filtered; observation and association stay raw.
+    this.appendTrail(track, detection, timestampMs)
     track.velocity.x += weight * (measuredVelocityX - track.velocity.x)
     track.velocity.y += weight * (measuredVelocityY - track.velocity.y)
     track.bbox = { ...detection.bbox }
@@ -196,7 +212,25 @@ export class BlobTracker {
     track.hits += 1
     // Confirmation is evidence-based: require two distinct observations.
     track.state = track.hits >= 2 ? 'confirmed' : 'tentative'
-    track.trail.push({ ...detection.center, timestampMs })
+  }
+
+  private appendTrail(track: Track, detection: Detection, timestampMs: number): void {
+    let filters = this.trailFilters.get(track)
+    if (
+      !filters || track.state === 'lost' || track.trail.length === 0 ||
+      timestampMs - track.lastObservedAtMs > TRAIL_SMOOTHING.resetGapMs
+    ) {
+      filters = { x: new OneEuroFilter(TRAIL_SMOOTHING), y: new OneEuroFilter(TRAIL_SMOOTHING) }
+      this.trailFilters.set(track, filters)
+      track.trail = []
+    }
+    // Use the same scale for both axes, independent of analysis/video resolution.
+    const scale = Math.hypot(this.width, this.height)
+    track.trail.push({
+      x: filters.x.filter(detection.center.x / scale, timestampMs) * scale,
+      y: filters.y.filter(detection.center.y / scale, timestampMs) * scale,
+      timestampMs,
+    })
   }
 
   private predictTrack(track: Track, timestampMs: number): void {
