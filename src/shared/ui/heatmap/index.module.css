@@ -6,7 +6,13 @@
   border: 1px solid currentColor;
   border-radius: 6px;
   min-inline-size: 0;
-  input[type='range'] { inline-size: 100%; }
+  input[type='range'] {
+    inline-size: 100%;
+  }
+  button {
+    background: black;
+    border: 1px solid currentColor;
+  }
 }
 .row {
   display: flex;

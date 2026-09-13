@@ -71,7 +71,7 @@
   gap: 0.5rem;
   padding: 1rem;
   border-radius: 6px;
-  border-width: 1px;
+  border: 1px solid currentcolor;
   label {
     display: flex;
     gap: 0.5rem;

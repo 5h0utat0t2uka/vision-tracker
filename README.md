@@ -27,6 +27,19 @@ Camera frames are processed locally and are not uploaded.
 
 共通処理は`src/shared/heatmap/Heatmap.ts`、設定UIは`src/shared/ui/heatmap/`です。ヒートマップが表示されている間のPNGキャプチャには、矩形とともにヒートマップも含まれます。-->
 
+## Trail smoothing
+
+3つの追跡ページの軌跡には[One Euro Filter](https://gery.casiez.net/1euro/)を適用します。観測時刻の差を使い、新しい検出結果ごとに表示用の座標だけを平滑化します。矩形・関連付け・速度推定・ヒートマップの計測は元の観測座標を使います。
+
+調整は`src/shared/tracking/BlobTracker.ts`の`TRAIL_SMOOTHING`で行います。
+
+- `minCutoffHz: 1`：小さくすると細かい揺れを抑えますが、表示の遅れが増えます。
+- `beta: 10`：大きくすると速い動きへの追従性が上がります。座標は画像の対角長で正規化しているため、ピクセル座標向けの値とは異なります。
+- `derivativeCutoffHz: 1`：動きの変化を平滑化するカットオフ周波数です。
+- `resetGapMs: 1000`：観測間隔がこの値を超えた場合、軌跡とフィルターをリセットします。対象の再取得・追跡リセット時も履歴を引き継ぎません。
+
+平滑化は検出精度を改善する処理ではありません。軌跡の先端は未平滑化の矩形中心より遅れることがあります。フィルターの追加計算量・保持状態は対象1件の観測ごとに一定で、追加ライブラリや画像処理は不要です。
+
 ## Routes
 - `/` — tracking method selection
 - `/background-subtraction`

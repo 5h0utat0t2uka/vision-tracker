@@ -44,7 +44,7 @@ export function HeatmapControls({ heatmap }: { heatmap: Heatmap }) {
         }
       </p>
       {/*<p className={styles.hint}>非表示中も両方を集計します。カメラ・解析条件の変更や中断時はリセットされます。固定カメラで使用してください。</p>*/}
-      <button type="button" onClick={() => { heatmap.reset(); setResetCount(count => count + 1) }}>ヒートマップをリセット</button>
+      <button type="button" onClick={() => { heatmap.reset(); setResetCount(count => count + 1) }}>リセット</button>
       <span className={styles.hint} role="status">{resetCount > 0 ? `ヒートマップをリセットしました（${resetCount}回）` : ''}</span>
     </fieldset>
   )

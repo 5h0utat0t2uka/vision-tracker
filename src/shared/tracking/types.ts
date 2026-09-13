@@ -35,6 +35,7 @@ export type Track = {
   missingSinceMs?: number
   hits: number
   state: TrackState
+  /** Display-only One Euro filtered positions; never use for measurements. */
   trail: (Point & { timestampMs: number })[]
 }
 

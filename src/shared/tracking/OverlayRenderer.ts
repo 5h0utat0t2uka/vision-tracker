@@ -227,10 +227,10 @@ export class OverlayRenderer {
   private drawLabel(id: number, x: number, y: number, color: string, score?: number): void {
     const context = this.overlayContext
     const confidence = typeof score === 'number' && Number.isFinite(score) && score >= 0 && score <= 1
-      ? ` CL: ${Math.round(score * 100)}%`
+      ? ` ${Math.round(score * 100)}%`
       : ''
     const label = `ID: ${id.toString().padStart(4, '0')}${confidence}`
-    context.font = '600 11px ui-monospace, monospace'
+    context.font = '500 11px ui-monospace, monospace'
     const textWidth = context.measureText(label).width
     const labelWidth = textWidth + 12
     const labelHeight = 22

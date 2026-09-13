@@ -418,7 +418,7 @@ export function MediaPipeTasksVisionObjectTracker() {
         <HeatmapControls heatmap={heatmap} />
         <div className={popoverStyles.list}>
           <fieldset className={popoverStyles.categories}>
-            <legend>Detection targets</legend>
+            <legend>Detection</legend>
             {DETECTION_CATEGORIES.map((category) => (
               <label key={category.value}>
                 <input

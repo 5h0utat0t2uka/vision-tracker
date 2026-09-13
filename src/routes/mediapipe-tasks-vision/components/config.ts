@@ -1,7 +1,7 @@
 export const DETECTION_CATEGORIES = [
-  { value: 'person', label: '人物' },
-  { value: 'car', label: '車' },
-  { value: 'bicycle', label: '自転車' },
+  { value: 'person', label: 'Person' },
+  { value: 'car', label: 'Car' },
+  { value: 'bicycle', label: 'Bicycle' },
 ] as const
 
 export type DetectionCategory = (typeof DETECTION_CATEGORIES)[number]['value']
@@ -45,7 +45,7 @@ export function isInferenceConfiguration(value: string): value is InferenceConfi
 }
 
 export const DEFAULT_DETECTION_CATEGORIES: readonly DetectionCategory[] = ['person']
-export const DEFAULT_SCORE_THRESHOLD = 0.7
+export const DEFAULT_SCORE_THRESHOLD = 0.3
 export const DEFAULT_INFERENCE_FPS = 10
 export const INFERENCE_FPS_OPTIONS = [5, 10, 15] as const
 export const METRICS_REPORT_INTERVAL_MS = 500
