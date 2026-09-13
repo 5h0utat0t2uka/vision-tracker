@@ -1,3 +1,5 @@
+import { Heatmap } from '../../shared/heatmap/Heatmap.ts'
+import { HeatmapControls } from '../../shared/ui/heatmap'
 import { Page, PageStage } from '../../shared/page'
 import { Popover } from '../../shared/ui/popover'
 import popoverStyles from '../../shared/ui/popover/index.module.css'
@@ -21,6 +23,7 @@ const INITIAL_METRICS = {
 }
 
 export function ColorSegmentationBlobTracker() {
+  const [heatmap] = useState(() => new Heatmap())
   const videoRef = useRef<HTMLVideoElement>(null)
   const analysisRef = useRef<HTMLCanvasElement>(null)
   const filterRef = useRef<HTMLCanvasElement>(null)
@@ -50,7 +53,7 @@ export function ColorSegmentationBlobTracker() {
     if (!analysis || !filter || !overlay || !stage) return
     let engine: ColorTrackingEngine
     try {
-      engine = new ColorTrackingEngine(analysis, filter, overlay)
+      engine = new ColorTrackingEngine(analysis, filter, overlay, heatmap)
     } catch (error) {
       setEngineError(error instanceof Error ? error.message : 'Failed to initialize color tracking.')
       return
@@ -69,7 +72,7 @@ export function ColorSegmentationBlobTracker() {
       engine.reset()
       engineRef.current = null
     }
-  }, [])
+  }, [heatmap])
 
   useEffect(() => {
     const video = videoRef.current
@@ -190,6 +193,7 @@ export function ColorSegmentationBlobTracker() {
       )}
 
       <Popover id="color-settings" title="Setting">
+        <HeatmapControls heatmap={heatmap} />
         <div className={popoverStyles.list}>
           <RangeControl id="hue-tolerance" label="Hue tolerance" min={0} max={180} step={1}
             hint={colorMode === 'chromatic' ? '大きいほど近い色相も検出' : '白・灰色・黒に近い色では色相を使いません'}

@@ -4,6 +4,7 @@ import { MAX_FRAME_GAP_MS } from '../../../shared/tracking/timing.ts'
 import { ProcessingTimings } from '../../../shared/ProcessingTimings.ts'
 import { ConnectedComponents } from '../../../shared/tracking/ConnectedComponents.ts'
 import { MotionDetector } from './MotionDetector.ts'
+import type { Heatmap } from '../../../shared/heatmap/Heatmap.ts'
 import type { TrackingSettings } from './types.ts'
 import {
   DEFAULT_ANALYSIS_LONG_EDGE,
@@ -51,9 +52,11 @@ export class TrackingEngine {
   private readonly analysisCanvas: HTMLCanvasElement
   private readonly analysisContext: CanvasRenderingContext2D
   private readonly overlayRenderer: OverlayRenderer
+  private readonly heatmap?: Heatmap
   private pipeline: AnalysisPipeline | null = null
   private analysisLongEdge: AnalysisLongEdge = DEFAULT_ANALYSIS_LONG_EDGE
   private previousTimestampMs: number | null = null
+  private heatmapSettingsKey = ''
   private lastResult: FrameResult = INITIAL_RESULT
   private readonly timings = new ProcessingTimings(BACKGROUND_TIMING_LABELS)
 
@@ -69,8 +72,10 @@ export class TrackingEngine {
     analysisCanvas: HTMLCanvasElement,
     filterCanvas: HTMLCanvasElement,
     overlayCanvas: HTMLCanvasElement,
+    heatmap?: Heatmap,
   ) {
     this.analysisCanvas = analysisCanvas
+    this.heatmap = heatmap
     const analysisContext = analysisCanvas.getContext('2d', {
       willReadFrequently: true,
     })
@@ -85,6 +90,7 @@ export class TrackingEngine {
       overlayCanvas,
       1,
       1,
+      heatmap,
     )
   }
 
@@ -147,6 +153,11 @@ export class TrackingEngine {
     this.syncVideoSize(video)
     const pipeline = this.pipeline
     if (!pipeline) return this.lastResult
+    const heatmapSettingsKey = `${settings.motionThreshold}:${settings.backgroundTimeConstantMs}:${settings.minBlobAreaRatio}`
+    if (heatmapSettingsKey !== this.heatmapSettingsKey) {
+      this.heatmapSettingsKey = heatmapSettingsKey
+      this.heatmap?.reset()
+    }
 
     if (timestampMs === this.previousTimestampMs) return this.lastResult
     if (this.previousTimestampMs !== null && (
@@ -181,6 +192,7 @@ export class TrackingEngine {
 
     if (motion.isCalibrating) {
       pipeline.blobTracker.reset()
+      this.heatmap?.reset()
       this.overlayRenderer.clear()
       const clearedAt = performance.now()
       this.timings.add({ render: clearedAt - motionCompletedAt, total: clearedAt - startedAt })
@@ -208,6 +220,7 @@ export class TrackingEngine {
     )
     const componentsCompletedAt = performance.now()
     const tracks = pipeline.blobTracker.update(detections, timestampMs, settings)
+    this.heatmap?.observe(tracks, timestampMs, pipeline.width, pipeline.height)
     const trackedAt = performance.now()
     this.overlayRenderer.render(tracks, video, {
       showTrail: settings.showTrail,

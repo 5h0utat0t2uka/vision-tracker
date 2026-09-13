@@ -23,7 +23,7 @@ export const DEFAULT_COLOR_SETTINGS: ColorTrackingSettings = {
   maxMatchDistanceRatio: 0.12,
   trailDurationMs: 1700,
   showTrail: true,
-  regionEffect: 'grayscale',
+  regionEffect: 'none',
 }
 export const ACHROMATIC_SATURATION_LIMIT = 0.1
 export const DARK_VALUE_LIMIT = 0.1
