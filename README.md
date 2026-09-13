@@ -15,31 +15,6 @@ Camera frames are processed locally and are not uploaded.
   - 動線・ヒートマップ生成
   - 
 
-<!--## Heatmap
-3つの追跡ページの設定内にある`Heatmap`で、矩形の占有時間と移動量を切り替えられます。映像・領域エフェクトの上、矩形とラベルの下に半透明で描画します。初期表示は占有時間、不透明度55%です。両指標は非表示中も並行して累積し、表示・指標・不透明度の変更では集計を消しません。専用リセットは追跡を継続したまま両指標だけを消去します。
-
-- 占有時間： 連続して観測できた追跡矩形について、観測間を補間して区画ごとの占有秒数を加算します。重なる矩形は加算されるため、複数対象が同じ場所にいるほど大きくなります。色の上限は30秒です。
-- 移動量： 観測した中心の移動距離を経路上の区画へ配分します。画像の対角長を100%とし、色の上限は区画あたり1%です。実距離や速度ではなく、検出位置の揺れも含みます。
-- 長辺128区画の固定サイズグリッドに蓄積し、平滑化して青→水色→緑→黄→赤へ変換します。ゼロは透明、上限以上は赤で表示します。凡例は設定内に表示します。
-- 新しい観測結果だけで集計し、再描画・重複フレーム・見失った位置では加算しません。1秒を超える観測間隔の時間や移動経路は補完しません。最初の確定観測より前も加算しません。
-- カメラ停止・中断、映像寸法や解析解像度、検出条件の変更に伴ってリセットします。背景差分の再学習中もリセットします。カメラを動かした場合は手動リセットしてください。
-- 背景差分では動体領域、色検出では色領域、MediaPipeでは検出対象を集計します。背景差分で静止して背景へ取り込まれた物体の占有時間は計測できません。
-
-共通処理は`src/shared/heatmap/Heatmap.ts`、設定UIは`src/shared/ui/heatmap/`です。ヒートマップが表示されている間のPNGキャプチャには、矩形とともにヒートマップも含まれます。-->
-
-## Trail smoothing
-
-3つの追跡ページの軌跡には[One Euro Filter](https://gery.casiez.net/1euro/)を適用します。観測時刻の差を使い、新しい検出結果ごとに表示用の座標だけを平滑化します。矩形・関連付け・速度推定・ヒートマップの計測は元の観測座標を使います。
-
-調整は`src/shared/tracking/BlobTracker.ts`の`TRAIL_SMOOTHING`で行います。
-
-- `minCutoffHz: 1`：小さくすると細かい揺れを抑えますが、表示の遅れが増えます。
-- `beta: 10`：大きくすると速い動きへの追従性が上がります。座標は画像の対角長で正規化しているため、ピクセル座標向けの値とは異なります。
-- `derivativeCutoffHz: 1`：動きの変化を平滑化するカットオフ周波数です。
-- `resetGapMs: 1000`：観測間隔がこの値を超えた場合、軌跡とフィルターをリセットします。対象の再取得・追跡リセット時も履歴を引き継ぎません。
-
-平滑化は検出精度を改善する処理ではありません。軌跡の先端は未平滑化の矩形中心より遅れることがあります。フィルターの追加計算量・保持状態は対象1件の観測ごとに一定で、追加ライブラリや画像処理は不要です。
-
 ## Routes
 - `/` — tracking method selection
 - `/background-subtraction`
@@ -75,7 +50,7 @@ Camera frames are processed locally and are not uploaded.
 3. 320pxでは3×3、480pxでは5×5のopeningで孤立ノイズを除去
 4. 8近傍のBlob抽出、共通Trackerでの関連付け、矩形・軌跡の描画
 
-## MediaPipe Tasks Vision Object Detection & Track
+## MediaPipe Tasks Vision Object Detection Track
 1. EfficientDet-Lite0／Lite2のint8＋CPUまたはfloat16＋GPUとMediaPipe WASMを同一オリジンから読み込み。初期値はEfficientDet-Lite0 int8＋CPUで、設定の`Inference model`から切り替え可能
 2. `requestVideoFrameCallback()`から既定10fps（5/10/15fpsから選択）で最新フレームを選択
 3. モデル切り替え時に`Inference resolution`を推奨値（Lite0は320px、Lite2は480px）へ自動設定し、選んだ長辺320/480/640px以内へ縦横比を維持して縮小した`ImageBitmap`をmodule Workerへtransferし、`detectForVideo()`をMain Thread外で実行
@@ -115,10 +90,33 @@ Camera frames are processed locally and are not uploaded.
 | BUSY SKIPS | 画像取得・推論中のため見送ったカメラフレーム数 |
 | RATE SKIPS | 受付可能だが設定FPSの間隔を満たさず見送ったフレーム数 |
 
+<!--## Trail smoothing
+トラッキングの軌跡には[One Euro Filter](https://gery.casiez.net/1euro/)を適用  
+観測時刻の差を使い、新しい検出結果ごとに表示用の座標だけを平滑化し、矩形・関連付け・速度推定・ヒートマップの計測は元の観測座標を使う  
+調整は`src/shared/tracking/BlobTracker.ts`にある下記の`TRAIL_SMOOTHING`で行う  
+- `minCutoffHz: 1`：小さくすると細かい揺れを抑えるが、表示の遅れが増る
+- `beta: 10`：大きくすると速い動きへの追従性が上がるが、座標は画像の対角長で正規化しているため、ピクセル座標向けの値とは異なる
+- `derivativeCutoffHz: 1`：動きの変化を平滑化するカットオフ周波数
+- `resetGapMs: 1000`：観測間隔がこの値を超えた場合、軌跡とフィルターをリセットを行い、対象の再取得・追跡リセット時も履歴を破棄する
+
+> [!NOTE]
+> 平滑化は検出精度を改善する処理ではなく、軌跡の先端は未平滑化の矩形中心より遅れることがある
+
+## Heatmap
+設定メニュー内にある`Heatmap`で、画面内における追跡対象の矩形の占有時間・移動量をカメラ画像の上に半透明で描画を行う  
+両指標は非表示中も並行して累積し、表示・指標・不透明度の変更では集計を継続し、リセットは追跡を継続したまま両指標だけを消去する  
+- 占有時間： 連続して観測できた追跡矩形について、観測間を補間して区画ごとの占有秒数を加算します。重なる矩形は加算されるため、複数対象が同じ場所にいるほど大きくなります。色の上限は30秒です。
+- 移動量： 観測した中心の移動距離を経路上の区画へ配分します。画像の対角長を100%とし、色の上限は区画あたり1%です。実距離や速度ではなく、検出位置の揺れも含みます。
+- 長辺128区画の固定サイズグリッドに蓄積し、平滑化して青→水色→緑→黄→赤へ変換します。ゼロは透明、上限以上は赤で表示します。凡例は設定内に表示します。
+- 新しい観測結果だけで集計し、再描画・重複フレーム・見失った位置では加算しません。1秒を超える観測間隔の時間や移動経路は補完しません。最初の確定観測より前も加算しません。
+- カメラ停止・中断、映像寸法や解析解像度、検出条件の変更に伴ってリセットします。背景差分の再学習中もリセットします。カメラを動かした場合は手動リセットしてください。
+- 背景差分では動体領域、色検出では色領域、MediaPipeでは検出対象を集計します。背景差分で静止して背景へ取り込まれた物体の占有時間は計測できません。-->
+
 ## References
 - [Wikipedia: 背景差分](https://ja.wikipedia.org/wiki/背景差分)
 - [OpenCV: Background Subtraction](https://docs.opencv.org/3.4.20/d8/d38/tutorial_bgsegm_bg_subtraction.html)
 - [OpenCV: HSV range thresholding](https://docs.opencv.org/4.x/da/d97/tutorial_threshold_inRange.html)
+- [One Euro Filter](https://gery.casiez.net/1euro/)
 - [Google for Developers: Object detection task guide](https://developers.google.com/edge/mediapipe/solutions/vision/object_detector#efficientdet-lite0_model_recommended)
 - [Media Capture and Streams](https://w3c.github.io/mediacapture-main/)
 - [Video frame callbacks specification](https://wicg.github.io/video-rvfc/)
