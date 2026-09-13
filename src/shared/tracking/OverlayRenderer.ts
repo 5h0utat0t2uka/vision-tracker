@@ -212,13 +212,16 @@ export class OverlayRenderer {
     context.beginPath()
     context.arc(center.x, center.y, 4, 0, Math.PI * 2)
     context.fill()
-    this.drawLabel(track.id, rect.x, rect.y, color)
+    this.drawLabel(track.id, rect.x, rect.y, color, track.score)
     context.restore()
   }
 
-  private drawLabel(id: number, x: number, y: number, color: string): void {
+  private drawLabel(id: number, x: number, y: number, color: string, score?: number): void {
     const context = this.overlayContext
-    const label = `ID ${id.toString().padStart(4, '0')}`
+    const confidence = typeof score === 'number' && Number.isFinite(score) && score >= 0 && score <= 1
+      ? ` CL: ${Math.round(score * 100)}%`
+      : ''
+    const label = `ID: ${id.toString().padStart(4, '0')}${confidence}`
     context.font = '600 11px ui-monospace, monospace'
     const textWidth = context.measureText(label).width
     const labelWidth = textWidth + 12
