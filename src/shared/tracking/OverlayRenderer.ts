@@ -1,6 +1,7 @@
 import type { Point, Rect, Track } from './types.ts'
 import type { RegionEffect } from '../rendering/regionEffect.ts';
 import { FalseColorRenderer } from '../rendering/FalseColorRenderer.ts'
+import type { Heatmap } from '../heatmap/Heatmap.ts'
 
 // Video filtering needs fewer backing pixels than crisp lines and text.
 export const FILTER_MAX_PIXEL_RATIO = 1
@@ -27,12 +28,14 @@ export class OverlayRenderer {
   private cssWidth = 1
   private cssHeight = 1
   private falseColorRenderer: FalseColorRenderer | null = null
+  private readonly heatmap?: Heatmap
 
   constructor(
     filterCanvas: HTMLCanvasElement,
     overlayCanvas: HTMLCanvasElement,
     analysisWidth: number,
     analysisHeight: number,
+    heatmap?: Heatmap,
   ) {
     const filterContext = filterCanvas.getContext('2d')
     const overlayContext = overlayCanvas.getContext('2d')
@@ -45,10 +48,12 @@ export class OverlayRenderer {
     this.overlayContext = overlayContext
     this.analysisWidth = analysisWidth
     this.analysisHeight = analysisHeight
+    this.heatmap = heatmap
   }
 
   setAnalysisSize(width: number, height: number): void {
     this.clear()
+    this.heatmap?.reset()
     this.analysisWidth = width
     this.analysisHeight = height
   }
@@ -81,6 +86,7 @@ export class OverlayRenderer {
 
   reset(): void {
     this.clear()
+    this.heatmap?.reset()
     this.falseColorRenderer?.dispose()
     this.falseColorRenderer = null
   }
@@ -122,6 +128,8 @@ export class OverlayRenderer {
         }
       }
     }
+    this.heatmap?.draw(this.overlayContext, this.overlayCanvas.ownerDocument,
+      transform.offsetX, transform.offsetY, transform.renderWidth, transform.renderHeight)
     for (const track of tracks) {
       this.drawTrack(track, transform, options.showTrail)
     }

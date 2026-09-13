@@ -1,3 +1,5 @@
+import { Heatmap } from '../../shared/heatmap/Heatmap.ts'
+import { HeatmapControls } from '../../shared/ui/heatmap'
 import { Page, PageStage } from '../../shared/page'
 import { Popover } from '../../shared/ui/popover'
 import popoverStyles from '../../shared/ui/popover/index.module.css'
@@ -34,7 +36,7 @@ const DEFAULT_SETTINGS: TrackingSettings = {
   maxMatchDistanceRatio: 0.12,
   trailDurationMs: 1700,
   showTrail: true,
-  regionEffect: 'grayscale'
+  regionEffect: 'none'
 }
 
 type RuntimeMetrics = FrameResult & {
@@ -54,6 +56,7 @@ const INITIAL_METRICS: RuntimeMetrics = {
 }
 
 export function BackgroundSubtractionBlobTracker() {
+  const [heatmap] = useState(() => new Heatmap())
   const videoRef = useRef<HTMLVideoElement>(null)
   const analysisCanvasRef = useRef<HTMLCanvasElement>(null)
   const filterCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -87,6 +90,7 @@ export function BackgroundSubtractionBlobTracker() {
       analysisCanvas,
       filterCanvas,
       overlayCanvas,
+      heatmap,
     )
     engineRef.current = engine
 
@@ -103,7 +107,7 @@ export function BackgroundSubtractionBlobTracker() {
       engine.reset()
       engineRef.current = null
     }
-  }, [])
+  }, [heatmap])
 
   useEffect(() => {
     const video = videoRef.current
@@ -302,6 +306,7 @@ export function BackgroundSubtractionBlobTracker() {
       )}
 
       <Popover id="tracking-settings" title="Setting">
+        <HeatmapControls heatmap={heatmap} />
 
         <div className={popoverStyles.list}>
           <RangeControl

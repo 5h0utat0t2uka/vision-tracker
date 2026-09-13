@@ -28,7 +28,7 @@ const SETTINGS: TrackingSettings = {
 }
 
 test('Region effectは定義済みの選択肢だけを受け付ける', () => {
-  assert.deepEqual(REGION_EFFECT_OPTIONS.map(option => option.value), ['grayscale', 'invert', 'greenscale', 'false-color-filter', 'false-color-webgl', 'none'])
+  assert.deepEqual(REGION_EFFECT_OPTIONS.map(option => option.value), ['grayscale', 'invert', 'greenscale', 'false-color-webgl', 'none'])
   for (const { value } of REGION_EFFECT_OPTIONS) assert.equal(isRegionEffect(value), true)
   for (const value of ['', 'Grayscale', 'blur', 'grayscale(1)', 'showGrayscale']) {
     assert.equal(isRegionEffect(value), false)

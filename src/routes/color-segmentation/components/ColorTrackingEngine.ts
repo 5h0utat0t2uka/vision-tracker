@@ -5,6 +5,7 @@ import { MAX_FRAME_GAP_MS } from '../../../shared/tracking/timing.ts'
 import { DEFAULT_ANALYSIS_LONG_EDGE, OPENING_KERNEL_SIZES, getAnalysisSize, isAnalysisLongEdge, type AnalysisLongEdge } from '../../../shared/tracking/analysisConfig.ts'
 import { ProcessingTimings } from '../../../shared/ProcessingTimings.ts'
 import { ColorDetector } from './ColorDetector.ts'
+import type { Heatmap } from '../../../shared/heatmap/Heatmap.ts'
 import { COLOR_TIMING_LABELS, type ColorTrackingSettings } from './config.ts'
 
 export type ColorFrameResult = { trackCount: number; detectionCount: number; matchedRatio: number }
@@ -25,6 +26,7 @@ export class ColorTrackingEngine {
   private readonly canvas: HTMLCanvasElement
   private readonly context: CanvasRenderingContext2D
   private readonly renderer: OverlayRenderer
+  private readonly heatmap?: Heatmap
   private readonly timings = new ProcessingTimings(COLOR_TIMING_LABELS)
   private pipeline: ColorPipeline | null = null
   private longEdge: AnalysisLongEdge = DEFAULT_ANALYSIS_LONG_EDGE
@@ -32,12 +34,13 @@ export class ColorTrackingEngine {
   private settingsKey = ''
   private lastResult = INITIAL_COLOR_RESULT
 
-  constructor(analysisCanvas: HTMLCanvasElement, filterCanvas: HTMLCanvasElement, overlayCanvas: HTMLCanvasElement) {
+  constructor(analysisCanvas: HTMLCanvasElement, filterCanvas: HTMLCanvasElement, overlayCanvas: HTMLCanvasElement, heatmap?: Heatmap) {
     const context = analysisCanvas.getContext('2d', { willReadFrequently: true, colorSpace: 'srgb' })
     if (!context) throw new Error('Failed to initialize the color analysis canvas.')
     this.canvas = analysisCanvas
     this.context = context
-    this.renderer = new OverlayRenderer(filterCanvas, overlayCanvas, 1, 1)
+    this.heatmap = heatmap
+    this.renderer = new OverlayRenderer(filterCanvas, overlayCanvas, 1, 1, heatmap)
   }
 
   resizeOverlay(width: number, height: number, pixelRatio: number): void {
@@ -105,6 +108,7 @@ export class ColorTrackingEngine {
     const detections = pipeline.components.extract(color.mask, Math.max(1, Math.round(pipeline.width * pipeline.height * settings.minBlobAreaRatio)))
     const extractedAt = performance.now()
     const tracks = pipeline.tracker.update(detections, timestampMs, settings)
+    this.heatmap?.observe(tracks, timestampMs, pipeline.width, pipeline.height)
     const trackedAt = performance.now()
     this.renderer.render(tracks, video, {
       showTrail: settings.showTrail,

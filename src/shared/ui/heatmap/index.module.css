@@ -1,0 +1,23 @@
+.controls {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  min-inline-size: 0;
+  input[type='range'] { inline-size: 100%; }
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.gradient {
+  block-size: 0.75rem;
+  border-radius: 3px;
+  background: linear-gradient(to right, rgb(0 80 255), rgb(0 220 255), rgb(0 230 80), rgb(255 230 0), rgb(255 35 0));
+}
+.hint, .scale { margin: 0; font-size: 0.75rem; line-height: 1.5; }

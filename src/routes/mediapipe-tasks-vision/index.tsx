@@ -1,3 +1,5 @@
+import { Heatmap } from '../../shared/heatmap/Heatmap.ts'
+import { HeatmapControls } from '../../shared/ui/heatmap'
 import { Page, PageStage } from '../../shared/page'
 import { Popover } from '../../shared/ui/popover'
 import popoverStyles from '../../shared/ui/popover/index.module.css'
@@ -75,6 +77,7 @@ function createAccumulator() {
 }
 
 export function MediaPipeTasksVisionObjectTracker() {
+  const [heatmap] = useState(() => new Heatmap())
   const videoRef = useRef<HTMLVideoElement>(null)
   const filterCanvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -86,7 +89,7 @@ export function MediaPipeTasksVisionObjectTracker() {
   const sourceSizeRef = useRef({ width: 0, height: 0 })
   const showTrailRef = useRef(true)
   // const showGrayscaleRef = useRef(true)
-  const regionEffectRef = useRef<RegionEffect>('grayscale')
+  const regionEffectRef = useRef<RegionEffect>('none')
   const inferenceFpsRef = useRef(DEFAULT_INFERENCE_FPS)
   const accumulatorRef = useRef(createAccumulator())
   const [timings] = useState(() => new ProcessingTimings(TIMING_LABELS))
@@ -99,7 +102,7 @@ export function MediaPipeTasksVisionObjectTracker() {
   const [inferenceFps, setInferenceFps] = useState(DEFAULT_INFERENCE_FPS)
   const [showTrail, setShowTrail] = useState(true)
   // const [showGrayscale, setShowGrayscale] = useState(true)
-  const [regionEffect, setRegionEffect] = useState<RegionEffect>('grayscale')
+  const [regionEffect, setRegionEffect] = useState<RegionEffect>('none')
   const [inferenceLongEdge, setInferenceLongEdge] = useState<InferenceLongEdge>(DEFAULT_INFERENCE_LONG_EDGE)
   const [selectedDeviceId, setSelectedDeviceId] = useState('')
   const [detectorStatus, setDetectorStatus] = useState<DetectorStatus>('loading')
@@ -119,7 +122,7 @@ export function MediaPipeTasksVisionObjectTracker() {
     const stage = stageRef.current
     if (!filterCanvas || !overlayCanvas || !stage) return
 
-    const renderer = new OverlayRenderer(filterCanvas, overlayCanvas, 1, 1)
+    const renderer = new OverlayRenderer(filterCanvas, overlayCanvas, 1, 1, heatmap)
     rendererRef.current = renderer
     const resize = () => {
       const bounds = stage.getBoundingClientRect()
@@ -134,7 +137,7 @@ export function MediaPipeTasksVisionObjectTracker() {
       renderer.reset()
       rendererRef.current = null
     }
-  }, [])
+  }, [heatmap])
 
   useEffect(() => {
     // A fresh Worker isolates model/delegate resources and asynchronous results
@@ -184,7 +187,7 @@ export function MediaPipeTasksVisionObjectTracker() {
       previousConfigurationRef.current = configurationKey
       trackerRef.current?.reset()
       pendingDrawRef.current = null
-      rendererRef.current?.clear()
+      rendererRef.current?.reset()
       accumulatorRef.current = createAccumulator()
       timings.reset()
       setMetrics(INITIAL_METRICS)
@@ -323,6 +326,7 @@ export function MediaPipeTasksVisionObjectTracker() {
 
     const trackingStartedAt = performance.now()
     const tracks = tracker.update(result.detections, result.timestampMs, TRACKER_SETTINGS)
+    heatmap.observe(tracks, result.timestampMs, result.width, result.height)
     const trackedAt = performance.now()
     pendingDrawRef.current = result.startedAtMs
     timings.add({
@@ -411,6 +415,7 @@ export function MediaPipeTasksVisionObjectTracker() {
       )}
 
       <Popover id="mediapipe-settings" title="Setting">
+        <HeatmapControls heatmap={heatmap} />
         <div className={popoverStyles.list}>
           <fieldset className={popoverStyles.categories}>
             <legend>Detection targets</legend>
