@@ -24,6 +24,11 @@ git-hooks.lib.${system}.run {
       files = "^(src|tests)/.*\\.tsx?$";
       pass_filenames = false;
     };
+    oxfmt = {
+      enable = true;
+      package = pkgs.oxfmt;
+      settings.mode = "write";
+    };
     oxlint = {
       enable = true;
       name = "oxlint";

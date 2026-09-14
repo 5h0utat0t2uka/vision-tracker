@@ -1,8 +1,8 @@
-@keyframes blink {
+/*@keyframes blink {
   0% { opacity: 1; }
   50% { opacity: 0; }
   100% { opacity: 1; }
-}
+}*/
 
 .metrics {
   z-index: 3;
@@ -98,9 +98,9 @@
   opacity: 0.5;
 }
 
-.camera {
+/*.camera {
   animation: blink 1.2s infinite;
-}
+}*/
 
 .globalControls {
   position: fixed;

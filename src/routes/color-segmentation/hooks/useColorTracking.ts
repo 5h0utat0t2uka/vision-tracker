@@ -1,149 +1,183 @@
-import { useCallback, useEffect, useEffectEvent, useRef, useState, type RefObject } from 'react'
-import type { CameraStatus } from '../../../camera/CameraSession.ts'
-import type { Heatmap } from '../../../shared/heatmap/Heatmap.ts'
-import { ProcessingTimings } from '../../../shared/ProcessingTimings.ts'
-import type { AnalysisLongEdge } from '../../../shared/tracking/analysisConfig.ts'
-import { FrameScheduler } from '../../../shared/tracking/FrameScheduler.ts'
-import { ColorTrackingEngine, INITIAL_COLOR_RESULT } from '../components/ColorTrackingEngine.ts'
-import { COLOR_METRICS_INTERVAL_MS, COLOR_TIMING_LABELS, type ColorTrackingSettings } from '../components/config.ts'
+import { useCallback, useEffect, useEffectEvent, useRef, useState, type RefObject } from "react";
+import type { CameraStatus } from "../../../camera/CameraSession.ts";
+import type { Heatmap } from "../../../shared/heatmap/Heatmap.ts";
+import { ProcessingTimings } from "../../../shared/ProcessingTimings.ts";
+import type { AnalysisLongEdge } from "../../../shared/tracking/analysisConfig.ts";
+import { FrameScheduler } from "../../../shared/tracking/FrameScheduler.ts";
+import { ColorTrackingEngine, INITIAL_COLOR_RESULT } from "../components/ColorTrackingEngine.ts";
+import {
+  COLOR_METRICS_INTERVAL_MS,
+  COLOR_TIMING_LABELS,
+  type ColorTrackingSettings,
+} from "../components/config.ts";
 
 const INITIAL_METRICS = {
   ...INITIAL_COLOR_RESULT,
   analysisFps: 0,
   missedVideoFrames: 0,
   timings: new ProcessingTimings(COLOR_TIMING_LABELS).summarize(),
-}
+};
 
 type ColorTrackingOptions = {
-  videoRef: RefObject<HTMLVideoElement | null>
-  analysisRef: RefObject<HTMLCanvasElement | null>
-  filterRef: RefObject<HTMLCanvasElement | null>
-  overlayRef: RefObject<HTMLCanvasElement | null>
-  stageRef: RefObject<HTMLElement | null>
-  heatmap: Heatmap
-  cameraStatus: CameraStatus
-  stopCamera: () => void
-  settings: ColorTrackingSettings
-  targetFps: number
-  longEdge: AnalysisLongEdge
-}
+  videoRef: RefObject<HTMLVideoElement | null>;
+  analysisRef: RefObject<HTMLCanvasElement | null>;
+  filterRef: RefObject<HTMLCanvasElement | null>;
+  overlayRef: RefObject<HTMLCanvasElement | null>;
+  stageRef: RefObject<HTMLElement | null>;
+  heatmap: Heatmap;
+  cameraStatus: CameraStatus;
+  stopCamera: () => void;
+  settings: ColorTrackingSettings;
+  targetFps: number;
+  longEdge: AnalysisLongEdge;
+};
 
 export function useColorTracking({
-  videoRef, analysisRef, filterRef, overlayRef, stageRef,
-  heatmap, cameraStatus, stopCamera, settings, targetFps, longEdge,
+  videoRef,
+  analysisRef,
+  filterRef,
+  overlayRef,
+  stageRef,
+  heatmap,
+  cameraStatus,
+  stopCamera,
+  settings,
+  targetFps,
+  longEdge,
 }: ColorTrackingOptions) {
-  const engineRef = useRef<ColorTrackingEngine | null>(null)
-  const [metrics, setMetrics] = useState(INITIAL_METRICS)
-  const [engineReady, setEngineReady] = useState(false)
-  const [engineError, setEngineError] = useState<string | null>(null)
+  const engineRef = useRef<ColorTrackingEngine | null>(null);
+  const [metrics, setMetrics] = useState(INITIAL_METRICS);
+  const [engineReady, setEngineReady] = useState(false);
+  const [engineError, setEngineError] = useState<string | null>(null);
   // Detection changes reset history; display/FPS changes only affect future frames.
-  const detectionKey = `${settings.targetColor}:${settings.hueTolerance}:${settings.saturationTolerance}:${settings.valueTolerance}:${settings.minBlobAreaRatio}`
-  const readFrameSettings = useEffectEvent(() => ({ settings, targetFps }))
-  const resetTimings = useCallback(() => engineRef.current?.resetTimings(), [])
+  const detectionKey = `${settings.targetColor}:${settings.hueTolerance}:${settings.saturationTolerance}:${settings.valueTolerance}:${settings.minBlobAreaRatio}`;
+  const readFrameSettings = useEffectEvent(() => ({ settings, targetFps }));
+  const resetTimings = useCallback(() => engineRef.current?.resetTimings(), []);
 
   useEffect(() => {
-    const analysis = analysisRef.current
-    const filter = filterRef.current
-    const overlay = overlayRef.current
-    const stage = stageRef.current
-    if (!analysis || !filter || !overlay || !stage) return
-    let engine: ColorTrackingEngine
+    const analysis = analysisRef.current;
+    const filter = filterRef.current;
+    const overlay = overlayRef.current;
+    const stage = stageRef.current;
+    if (!analysis || !filter || !overlay || !stage) return;
+    let engine: ColorTrackingEngine;
     try {
-      engine = new ColorTrackingEngine(analysis, filter, overlay, heatmap)
+      engine = new ColorTrackingEngine(analysis, filter, overlay, heatmap);
     } catch (error) {
-      setEngineError(error instanceof Error ? error.message : 'Failed to initialize color tracking.')
-      return
+      setEngineError(
+        error instanceof Error ? error.message : "Failed to initialize color tracking.",
+      );
+      return;
     }
-    engineRef.current = engine
-    setEngineReady(true)
+    engineRef.current = engine;
+    setEngineReady(true);
     const resize = () => {
-      const bounds = stage.getBoundingClientRect()
-      engine.resizeOverlay(bounds.width, bounds.height, window.devicePixelRatio)
-    }
-    const observer = new ResizeObserver(resize)
-    observer.observe(stage)
-    resize()
+      const bounds = stage.getBoundingClientRect();
+      engine.resizeOverlay(bounds.width, bounds.height, window.devicePixelRatio);
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(stage);
+    resize();
     return () => {
-      observer.disconnect()
-      engine.reset()
-      engineRef.current = null
-    }
-  }, [heatmap, analysisRef, filterRef, overlayRef, stageRef])
+      observer.disconnect();
+      engine.reset();
+      engineRef.current = null;
+    };
+  }, [heatmap, analysisRef, filterRef, overlayRef, stageRef]);
 
   useEffect(() => {
-    const video = videoRef.current
-    const engine = engineRef.current
-    if (cameraStatus !== 'running' || !video || !engine) {
-      engine?.reset()
-      setMetrics(INITIAL_METRICS)
-      return
+    const video = videoRef.current;
+    const engine = engineRef.current;
+    if (cameraStatus !== "running" || !video || !engine) {
+      engine?.reset();
+      setMetrics(INITIAL_METRICS);
+      return;
     }
-    if (typeof video.requestVideoFrameCallback !== 'function') {
-      setEngineError('This browser does not support requestVideoFrameCallback().')
-      stopCamera()
-      return
+    if (typeof video.requestVideoFrameCallback !== "function") {
+      setEngineError("This browser does not support requestVideoFrameCallback().");
+      stopCamera();
+      return;
     }
-    let active = true
-    let callbackId: number | null = null
-    const scheduler = new FrameScheduler()
-    let lastReportAt = performance.now()
-    let lastPresentedFrames: number | null = null
-    let processedFrames = 0
-    let missedVideoFrames = 0
-    let result = INITIAL_COLOR_RESULT
+    let active = true;
+    let callbackId: number | null = null;
+    const scheduler = new FrameScheduler();
+    let lastReportAt = performance.now();
+    let lastPresentedFrames: number | null = null;
+    let processedFrames = 0;
+    let missedVideoFrames = 0;
+    let result = INITIAL_COLOR_RESULT;
     const resetProcessing = () => {
-      engine.reset()
-      scheduler.reset()
-      lastReportAt = performance.now()
-      lastPresentedFrames = null
-      processedFrames = 0
-      missedVideoFrames = 0
-      result = INITIAL_COLOR_RESULT
-      setMetrics(INITIAL_METRICS)
-    }
+      engine.reset();
+      scheduler.reset();
+      lastReportAt = performance.now();
+      lastPresentedFrames = null;
+      processedFrames = 0;
+      missedVideoFrames = 0;
+      result = INITIAL_COLOR_RESULT;
+      setMetrics(INITIAL_METRICS);
+    };
     const resizeSource = () => {
-      engine.syncVideoSize(video, longEdge)
-      resetProcessing()
-    }
+      engine.syncVideoSize(video, longEdge);
+      resetProcessing();
+    };
     const processFrame: VideoFrameRequestCallback = (now, metadata) => {
-      if (!active) return
-      if (document.visibilityState === 'visible') {
-        if (lastPresentedFrames !== null) missedVideoFrames += Math.max(0, metadata.presentedFrames - lastPresentedFrames - 1)
-        lastPresentedFrames = metadata.presentedFrames
+      if (!active) return;
+      if (document.visibilityState === "visible") {
+        if (lastPresentedFrames !== null)
+          missedVideoFrames += Math.max(0, metadata.presentedFrames - lastPresentedFrames - 1);
+        lastPresentedFrames = metadata.presentedFrames;
         try {
-          const current = readFrameSettings()
+          const current = readFrameSettings();
           if (scheduler.shouldProcess(metadata.presentationTime, current.targetFps)) {
-            result = engine.process(video, metadata.presentationTime, current.settings)
-            processedFrames++
+            result = engine.process(video, metadata.presentationTime, current.settings);
+            processedFrames++;
           }
         } catch (error) {
-          active = false
-          setEngineError(error instanceof Error ? error.message : 'Failed to analyze color regions.')
-          stopCamera()
-          return
+          active = false;
+          setEngineError(
+            error instanceof Error ? error.message : "Failed to analyze color regions.",
+          );
+          stopCamera();
+          return;
         }
-        const duration = now - lastReportAt
+        const duration = now - lastReportAt;
         if (duration >= COLOR_METRICS_INTERVAL_MS) {
-          setMetrics({ ...result, analysisFps: processedFrames * 1000 / duration, missedVideoFrames, timings: engine.getTimingSummary() })
-          lastReportAt = now
-          processedFrames = 0
+          setMetrics({
+            ...result,
+            analysisFps: (processedFrames * 1000) / duration,
+            missedVideoFrames,
+            timings: engine.getTimingSummary(),
+          });
+          lastReportAt = now;
+          processedFrames = 0;
         }
       }
-      callbackId = video.requestVideoFrameCallback(processFrame)
-    }
-    setEngineError(null)
-    resizeSource()
-    document.addEventListener('visibilitychange', resetProcessing)
-    video.addEventListener('resize', resizeSource)
-    callbackId = video.requestVideoFrameCallback(processFrame)
+      callbackId = video.requestVideoFrameCallback(processFrame);
+    };
+    setEngineError(null);
+    resizeSource();
+    document.addEventListener("visibilitychange", resetProcessing);
+    video.addEventListener("resize", resizeSource);
+    callbackId = video.requestVideoFrameCallback(processFrame);
     return () => {
-      active = false
-      document.removeEventListener('visibilitychange', resetProcessing)
-      video.removeEventListener('resize', resizeSource)
-      if (callbackId !== null) video.cancelVideoFrameCallback(callbackId)
-      engine.reset()
-    }
-  }, [cameraStatus, stopCamera, longEdge, detectionKey, heatmap, videoRef, analysisRef, filterRef, overlayRef, stageRef])
+      active = false;
+      document.removeEventListener("visibilitychange", resetProcessing);
+      video.removeEventListener("resize", resizeSource);
+      if (callbackId !== null) video.cancelVideoFrameCallback(callbackId);
+      engine.reset();
+    };
+  }, [
+    cameraStatus,
+    stopCamera,
+    longEdge,
+    detectionKey,
+    heatmap,
+    videoRef,
+    analysisRef,
+    filterRef,
+    overlayRef,
+    stageRef,
+  ]);
 
-  return { metrics, engineReady, engineError, resetTimings }
+  return { metrics, engineReady, engineError, resetTimings };
 }
