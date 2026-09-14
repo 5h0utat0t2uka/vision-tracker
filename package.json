@@ -14,6 +14,7 @@
     "prebuild": "pnpm prepare:mediapipe-assets",
     "build": "tsc -b && vite build",
     "test": "node --test tests/*.test.ts",
+    "test:browser": "tsc -p tsconfig.browser-tests.json && playwright test",
     "typecheck": "tsc -b",
     "check:pre-commit": "nix develop -c prek run --all-files",
     "preview": "vite preview"
@@ -25,6 +26,7 @@
     "react-router": "^8.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

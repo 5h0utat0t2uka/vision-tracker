@@ -3,24 +3,15 @@ import { HeatmapControls } from '../../shared/ui/heatmap'
 import { Page, PageStage } from '../../shared/page'
 import { Popover } from '../../shared/ui/popover'
 import popoverStyles from '../../shared/ui/popover/index.module.css'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useCamera } from '../../hooks/useCamera.ts'
-import { ColorTrackingEngine, INITIAL_COLOR_RESULT } from './components/ColorTrackingEngine.ts'
+import { useColorTracking } from './hooks/useColorTracking.ts'
 import { getColorMode, hexToHsv, isHexColor } from './components/ColorDetector.ts'
-import { COLOR_FPS_OPTIONS, COLOR_METRICS_INTERVAL_MS, COLOR_TIMING_LABELS, DEFAULT_COLOR_FPS, DEFAULT_COLOR_SETTINGS } from './components/config.ts'
-import { FrameScheduler } from '../../shared/tracking/FrameScheduler.ts'
+import { COLOR_FPS_OPTIONS, COLOR_TIMING_LABELS, DEFAULT_COLOR_FPS, DEFAULT_COLOR_SETTINGS } from './components/config.ts'
 import { ANALYSIS_LONG_EDGES, DEFAULT_ANALYSIS_LONG_EDGE, isAnalysisLongEdge, type AnalysisLongEdge } from '../../shared/tracking/analysisConfig.ts'
-import { ProcessingTimings } from '../../shared/ProcessingTimings.ts'
 import { CaptureButton } from '../../shared/ui/capture'
 import { CameraToggleButton, Metric, Metrics, GlobalControls, RegionEffectControl, RangeControl, SettingsIcon } from '../../shared/ui/copntrols'
-
-const INITIAL_METRICS = {
-  ...INITIAL_COLOR_RESULT,
-  analysisFps: 0,
-  missedVideoFrames: 0,
-  timings: new ProcessingTimings(COLOR_TIMING_LABELS).summarize(),
-}
 
 export function ColorSegmentationBlobTracker() {
   const [heatmap] = useState(() => new Heatmap())
@@ -29,124 +20,17 @@ export function ColorSegmentationBlobTracker() {
   const filterRef = useRef<HTMLCanvasElement>(null)
   const overlayRef = useRef<HTMLCanvasElement>(null)
   const stageRef = useRef<HTMLElement>(null)
-  const engineRef = useRef<ColorTrackingEngine | null>(null)
   const [settings, setSettings] = useState(DEFAULT_COLOR_SETTINGS)
   const [targetFps, setTargetFps] = useState(DEFAULT_COLOR_FPS)
   const [longEdge, setLongEdge] = useState<AnalysisLongEdge>(DEFAULT_ANALYSIS_LONG_EDGE)
   const [selectedDeviceId, setSelectedDeviceId] = useState('')
-  const [metrics, setMetrics] = useState(INITIAL_METRICS)
-  const [engineReady, setEngineReady] = useState(false)
-  const [engineError, setEngineError] = useState<string | null>(null)
-  const settingsRef = useRef(settings)
-  const fpsRef = useRef(targetFps)
   const camera = useCamera(videoRef)
-  settingsRef.current = settings
-  fpsRef.current = targetFps
-  const detectionKey = `${settings.targetColor}:${settings.hueTolerance}:${settings.saturationTolerance}:${settings.valueTolerance}:${settings.minBlobAreaRatio}`
+  const { metrics, engineReady, engineError, resetTimings } = useColorTracking({
+    videoRef, analysisRef, filterRef, overlayRef, stageRef,
+    heatmap, cameraStatus: camera.status, stopCamera: camera.stop,
+    settings, targetFps, longEdge,
+  })
   const colorMode = getColorMode(hexToHsv(settings.targetColor))
-
-  useEffect(() => {
-    const analysis = analysisRef.current
-    const filter = filterRef.current
-    const overlay = overlayRef.current
-    const stage = stageRef.current
-    if (!analysis || !filter || !overlay || !stage) return
-    let engine: ColorTrackingEngine
-    try {
-      engine = new ColorTrackingEngine(analysis, filter, overlay, heatmap)
-    } catch (error) {
-      setEngineError(error instanceof Error ? error.message : 'Failed to initialize color tracking.')
-      return
-    }
-    engineRef.current = engine
-    setEngineReady(true)
-    const resize = () => {
-      const bounds = stage.getBoundingClientRect()
-      engine.resizeOverlay(bounds.width, bounds.height, window.devicePixelRatio)
-    }
-    const observer = new ResizeObserver(resize)
-    observer.observe(stage)
-    resize()
-    return () => {
-      observer.disconnect()
-      engine.reset()
-      engineRef.current = null
-    }
-  }, [heatmap])
-
-  useEffect(() => {
-    const video = videoRef.current
-    const engine = engineRef.current
-    if (camera.status !== 'running' || !video || !engine) {
-      engine?.reset()
-      setMetrics(INITIAL_METRICS)
-      return
-    }
-    if (typeof video.requestVideoFrameCallback !== 'function') {
-      setEngineError('This browser does not support requestVideoFrameCallback().')
-      camera.stop()
-      return
-    }
-    let active = true
-    let callbackId: number | null = null
-    const scheduler = new FrameScheduler()
-    let lastReportAt = performance.now()
-    let lastPresentedFrames: number | null = null
-    let processedFrames = 0
-    let missedVideoFrames = 0
-    let result = INITIAL_COLOR_RESULT
-    const resetProcessing = () => {
-      engine.reset()
-      scheduler.reset()
-      lastReportAt = performance.now()
-      lastPresentedFrames = null
-      processedFrames = 0
-      missedVideoFrames = 0
-      result = INITIAL_COLOR_RESULT
-      setMetrics(INITIAL_METRICS)
-    }
-    const resizeSource = () => {
-      engine.syncVideoSize(video, longEdge)
-      resetProcessing()
-    }
-    const processFrame: VideoFrameRequestCallback = (now, metadata) => {
-      if (!active) return
-      if (document.visibilityState === 'visible') {
-        if (lastPresentedFrames !== null) missedVideoFrames += Math.max(0, metadata.presentedFrames - lastPresentedFrames - 1)
-        lastPresentedFrames = metadata.presentedFrames
-        try {
-          if (scheduler.shouldProcess(metadata.presentationTime, fpsRef.current)) {
-            result = engine.process(video, metadata.presentationTime, settingsRef.current)
-            processedFrames++
-          }
-        } catch (error) {
-          active = false
-          setEngineError(error instanceof Error ? error.message : 'Failed to analyze color regions.')
-          camera.stop()
-          return
-        }
-        const duration = now - lastReportAt
-        if (duration >= COLOR_METRICS_INTERVAL_MS) {
-          setMetrics({ ...result, analysisFps: processedFrames * 1000 / duration, missedVideoFrames, timings: engine.getTimingSummary() })
-          lastReportAt = now
-          processedFrames = 0
-        }
-      }
-      callbackId = video.requestVideoFrameCallback(processFrame)
-    }
-    setEngineError(null)
-    resizeSource()
-    document.addEventListener('visibilitychange', resetProcessing)
-    video.addEventListener('resize', resizeSource)
-    callbackId = video.requestVideoFrameCallback(processFrame)
-    return () => {
-      active = false
-      document.removeEventListener('visibilitychange', resetProcessing)
-      video.removeEventListener('resize', resizeSource)
-      if (callbackId !== null) video.cancelVideoFrameCallback(callbackId)
-      engine.reset()
-    }
-  }, [camera.status, camera.stop, longEdge, detectionKey])
 
   const cameraActive = camera.status === 'running' || camera.status === 'suspended' || camera.status === 'requesting'
   const statusText = engineError || camera.status === 'error' ? 'Error'
@@ -236,7 +120,7 @@ export function ColorSegmentationBlobTracker() {
         </div>
         <div className={popoverStyles.row}>
           <label htmlFor="color-fps">Frame rate limit</label>
-          <select id="color-fps" value={targetFps} onChange={event => { setTargetFps(Number(event.target.value)); engineRef.current?.resetTimings() }}>
+          <select id="color-fps" value={targetFps} onChange={event => { setTargetFps(Number(event.target.value)); resetTimings() }}>
             {COLOR_FPS_OPTIONS.map(fps => <option key={fps} value={fps}>{fps} fps</option>)}
           </select>
         </div>
@@ -257,7 +141,7 @@ export function ColorSegmentationBlobTracker() {
               ...current,
               regionEffect,
             }));
-            engineRef.current?.resetTimings();
+            resetTimings();
           }}
         />
 
@@ -266,7 +150,7 @@ export function ColorSegmentationBlobTracker() {
           <input id="color-trail" type="checkbox" checked={settings.showTrail} onChange={event => {
             const showTrail = event.target.checked
             setSettings(current => ({ ...current, showTrail }))
-            engineRef.current?.resetTimings()
+            resetTimings()
           }} />
         </div>
 

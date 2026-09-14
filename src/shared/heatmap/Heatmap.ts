@@ -2,7 +2,7 @@ import type { Rect, Track } from '../tracking/types.ts'
 import { MAX_FRAME_GAP_MS } from '../tracking/timing.ts'
 
 export type HeatmapMode = 'occupancy' | 'movement'
-export const HEATMAP_SCALES = { occupancy: 30, movement: 1 } as const
+export const HEATMAP_SCALES = { occupancy: 60, movement: 1 } as const
 const GRID_LONG_EDGE = 128
 // Radius in heatmap cells (not screen pixels). 0 disables blur; larger values soften edges.
 export const HEATMAP_BLUR_RADIUS = { occupancy: 6, movement: 2 } as const
