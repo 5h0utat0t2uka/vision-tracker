@@ -1,16 +1,14 @@
 export const REGION_EFFECT_OPTIONS = [
-  { value: 'grayscale', label: 'Grayscale' },
-  { value: 'invert', label: 'Invert' },
-  { value: 'greenscale', label: 'NVD' },
+  { value: "grayscale", label: "Grayscale" },
+  { value: "invert", label: "Invert" },
+  { value: "greenscale", label: "NVD" },
   // { value: 'false-color-filter', label: 'Predator (Filter)' },
-  { value: 'false-color-webgl', label: 'Predator (WebGL)' },
-  { value: 'none', label: 'None' },
+  { value: "false-color-webgl", label: "Predator (WebGL)" },
+  { value: "none", label: "None" },
 ] as const;
 
-export type RegionEffect = (typeof REGION_EFFECT_OPTIONS)[number]['value'];
+export type RegionEffect = (typeof REGION_EFFECT_OPTIONS)[number]["value"];
 
 export function isRegionEffect(value: string): value is RegionEffect {
-  return REGION_EFFECT_OPTIONS.some(
-    (option) => option.value === value,
-  );
+  return REGION_EFFECT_OPTIONS.some((option) => option.value === value);
 }

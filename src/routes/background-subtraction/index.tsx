@@ -1,21 +1,21 @@
-import { Heatmap } from '../../shared/heatmap/Heatmap.ts'
-import { HeatmapControls } from '../../shared/ui/heatmap'
-import { Page, PageStage } from '../../shared/page'
-import { Popover } from '../../shared/ui/popover'
-import popoverStyles from '../../shared/ui/popover/index.module.css'
-import { useRef, useState } from 'react'
-import { Link } from 'react-router'
-import { useCamera } from '../../hooks/useCamera.ts'
-import type { CameraStatus } from '../../camera/CameraSession.ts'
-import { BACKGROUND_TIMING_LABELS } from './components/TrackingEngine.ts'
-import { useBackgroundTracking } from './hooks/useBackgroundTracking.ts'
-import type { TrackingSettings } from './components/types.ts'
+import { Heatmap } from "../../shared/heatmap/Heatmap.ts";
+import { HeatmapControls } from "../../shared/ui/heatmap";
+import { Page, PageStage } from "../../shared/page";
+import { Popover } from "../../shared/ui/popover";
+import popoverStyles from "../../shared/ui/popover/index.module.css";
+import { useRef, useState } from "react";
+import { Link } from "react-router";
+import { useCamera } from "../../hooks/useCamera.ts";
+import type { CameraStatus } from "../../camera/CameraSession.ts";
+import { BACKGROUND_TIMING_LABELS } from "./components/TrackingEngine.ts";
+import { useBackgroundTracking } from "./hooks/useBackgroundTracking.ts";
+import type { TrackingSettings } from "./components/types.ts";
 import {
   ANALYSIS_LONG_EDGES,
   DEFAULT_ANALYSIS_LONG_EDGE,
   isAnalysisLongEdge,
   type AnalysisLongEdge,
-} from '../../shared/tracking/analysisConfig.ts'
+} from "../../shared/tracking/analysisConfig.ts";
 import {
   CameraToggleButton,
   Metric,
@@ -24,8 +24,8 @@ import {
   RegionEffectControl,
   RangeControl,
   SettingsIcon,
-} from '../../shared/ui/copntrols'
-import { CaptureButton } from '../../shared/ui/capture'
+} from "../../shared/ui/copntrols";
+import { CaptureButton } from "../../shared/ui/capture";
 
 const DEFAULT_SETTINGS: TrackingSettings = {
   motionThreshold: 70,
@@ -35,30 +35,41 @@ const DEFAULT_SETTINGS: TrackingSettings = {
   maxMatchDistanceRatio: 0.12,
   trailDurationMs: 1700,
   showTrail: true,
-  regionEffect: 'none'
-}
+  regionEffect: "none",
+};
 
 export function BackgroundSubtractionBlobTracker() {
-  const [heatmap] = useState(() => new Heatmap())
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const analysisCanvasRef = useRef<HTMLCanvasElement>(null)
-  const filterCanvasRef = useRef<HTMLCanvasElement>(null)
-  const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
-  const stageRef = useRef<HTMLElement>(null)
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
-  const [selectedDeviceId, setSelectedDeviceId] = useState('')
-  const [targetFps, setTargetFps] = useState(30)
-  const [analysisLongEdge, setAnalysisLongEdge] = useState<AnalysisLongEdge>(DEFAULT_ANALYSIS_LONG_EDGE)
-  const camera = useCamera(videoRef)
+  const [heatmap] = useState(() => new Heatmap());
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const analysisCanvasRef = useRef<HTMLCanvasElement>(null);
+  const filterCanvasRef = useRef<HTMLCanvasElement>(null);
+  const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
+  const stageRef = useRef<HTMLElement>(null);
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [targetFps, setTargetFps] = useState(30);
+  const [analysisLongEdge, setAnalysisLongEdge] = useState<AnalysisLongEdge>(
+    DEFAULT_ANALYSIS_LONG_EDGE,
+  );
+  const camera = useCamera(videoRef);
 
   const { metrics, engineError, resetTimings } = useBackgroundTracking({
-    videoRef, analysisCanvasRef, filterCanvasRef, overlayCanvasRef, stageRef,
-    heatmap, cameraStatus: camera.status, stopCamera: camera.stop,
-    settings, targetFps, analysisLongEdge,
-  })
+    videoRef,
+    analysisCanvasRef,
+    filterCanvasRef,
+    overlayCanvasRef,
+    stageRef,
+    heatmap,
+    cameraStatus: camera.status,
+    stopCamera: camera.stop,
+    settings,
+    targetFps,
+    analysisLongEdge,
+  });
 
-  const statusText = getStatusText(camera.status, metrics.isCalibrating)
-  const cameraActive = camera.status === 'running' || camera.status === 'suspended' || camera.status === 'requesting'
+  const statusText = getStatusText(camera.status, metrics.isCalibrating);
+  const cameraActive =
+    camera.status === "running" || camera.status === "suspended" || camera.status === "requesting";
   // const cameraDescription = camera.info
   //   ? [
   //       camera.info.width && camera.info.height
@@ -84,11 +95,7 @@ export function BackgroundSubtractionBlobTracker() {
           aria-hidden="true"
         />
         <canvas ref={overlayCanvasRef} aria-hidden="true" />
-        <canvas
-          ref={analysisCanvasRef}
-          className="analysis-canvas"
-          aria-hidden="true"
-        />
+        <canvas ref={analysisCanvasRef} className="analysis-canvas" aria-hidden="true" />
 
         {/*{camera.status !== 'running' && (
           <div className="stage-placeholder">
@@ -99,17 +106,17 @@ export function BackgroundSubtractionBlobTracker() {
 
         <Metrics aria-label="Tracking metrics">
           <Metric label="TRACKS" value={metrics.trackCount.toString()} />
-          <Metric
-            label="MOTION"
-            value={`${(metrics.foregroundRatio * 100).toFixed(1)}%`}
-          />
-          <Metric
-            label="ANALYSIS"
-            value={`${metrics.analysisFps.toFixed(1)} FPS`}
-          />
+          <Metric label="MOTION" value={`${(metrics.foregroundRatio * 100).toFixed(1)}%`} />
+          <Metric label="ANALYSIS" value={`${metrics.analysisFps.toFixed(1)} FPS`} />
           {Object.entries(BACKGROUND_TIMING_LABELS).map(([key, label]) => {
-            const timing = metrics.timings[key as keyof typeof BACKGROUND_TIMING_LABELS]
-            return <Metric key={key} label={`${label}·AVG / P95`} value={`${timing.average.toFixed(1)} / ${timing.p95.toFixed(1)} MS`} />
+            const timing = metrics.timings[key as keyof typeof BACKGROUND_TIMING_LABELS];
+            return (
+              <Metric
+                key={key}
+                label={`${label}·AVG / P95`}
+                value={`${timing.average.toFixed(1)} / ${timing.p95.toFixed(1)} MS`}
+              />
+            );
           })}
           <Metric label="BLOBS" value={metrics.detectionCount.toString()} />
           <Metric label="DROPPED" value={metrics.missedVideoFrames.toString()} />
@@ -130,13 +137,17 @@ export function BackgroundSubtractionBlobTracker() {
           <SettingsIcon />
         </button>
         <CameraToggleButton
-          active={camera.status === 'running' || camera.status === 'suspended' || camera.status === 'requesting'}
+          active={
+            camera.status === "running" ||
+            camera.status === "suspended" ||
+            camera.status === "requesting"
+          }
           onStart={() => void camera.start(selectedDeviceId || undefined)}
           onStop={camera.stop}
         />
       </GlobalControls>
 
-      {camera.status === 'running' && (
+      {camera.status === "running" && (
         <CaptureButton videoRef={videoRef} overlayRef={overlayCanvasRef} />
       )}
 
@@ -196,9 +207,9 @@ export function BackgroundSubtractionBlobTracker() {
             id="camera-device"
             value={camera.info?.deviceId ?? selectedDeviceId}
             onChange={(event) => {
-              const deviceId = event.target.value
-              setSelectedDeviceId(deviceId)
-              if (cameraActive) void camera.start(deviceId || undefined)
+              const deviceId = event.target.value;
+              setSelectedDeviceId(deviceId);
+              if (cameraActive) void camera.start(deviceId || undefined);
             }}
           >
             <option value="">Default camera</option>
@@ -228,12 +239,14 @@ export function BackgroundSubtractionBlobTracker() {
             value={analysisLongEdge}
             // aria-describedby="analysis-resolution-hint"
             onChange={(event) => {
-              const value = Number(event.target.value)
-              if (isAnalysisLongEdge(value)) setAnalysisLongEdge(value)
+              const value = Number(event.target.value);
+              if (isAnalysisLongEdge(value)) setAnalysisLongEdge(value);
             }}
           >
             {ANALYSIS_LONG_EDGES.map((longEdge) => (
-              <option key={longEdge} value={longEdge}>{longEdge} px</option>
+              <option key={longEdge} value={longEdge}>
+                {longEdge} px
+              </option>
             ))}
           </select>
         </div>
@@ -243,14 +256,14 @@ export function BackgroundSubtractionBlobTracker() {
         <RegionEffectControl
           id="background-region-effect"
           value={settings.regionEffect}
-            onChange={(regionEffect) => {
-              setSettings((current) => ({
-                ...current,
-                regionEffect,
-              }));
+          onChange={(regionEffect) => {
+            setSettings((current) => ({
+              ...current,
+              regionEffect,
+            }));
 
-              resetTimings();
-            }}
+            resetTimings();
+          }}
         />
         <div className={popoverStyles.row}>
           <label htmlFor="show-trail">Trail lines</label>
@@ -274,27 +287,24 @@ export function BackgroundSubtractionBlobTracker() {
         )}
       </Popover>
     </Page>
-  )
+  );
 }
 
-function getStatusText(
-  status: CameraStatus,
-  isCalibrating: boolean,
-): string {
-  if (status === 'requesting') {
-    return 'Requesting access'
+function getStatusText(status: CameraStatus, isCalibrating: boolean): string {
+  if (status === "requesting") {
+    return "Requesting access";
   }
-  if (status === 'suspended') {
-    return 'Camera interrupted'
+  if (status === "suspended") {
+    return "Camera interrupted";
   }
-  if (status === 'running' && isCalibrating) {
-    return 'Initialize'
+  if (status === "running" && isCalibrating) {
+    return "Initialize";
   }
-  if (status === 'running') {
-    return 'Running'
+  if (status === "running") {
+    return "Running";
   }
-  if (status === 'error') {
-    return 'Error'
+  if (status === "error") {
+    return "Error";
   }
-  return 'Idle'
+  return "Idle";
 }

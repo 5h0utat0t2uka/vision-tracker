@@ -1,11 +1,15 @@
-import type { ReactNode } from 'react'
-import { type RegionEffect, REGION_EFFECT_OPTIONS, isRegionEffect } from '../../rendering/regionEffect.ts';
-import styles from './index.module.css'
+import type { ReactNode } from "react";
+import {
+  type RegionEffect,
+  REGION_EFFECT_OPTIONS,
+  isRegionEffect,
+} from "../../rendering/regionEffect.ts";
+import styles from "./index.module.css";
 
 type MetricProps = {
-  label: string
-  value: string
-}
+  label: string;
+  value: string;
+};
 type RegionEffectControlProps = {
   id: string;
   value: RegionEffect;
@@ -13,11 +17,21 @@ type RegionEffectControlProps = {
 };
 
 export function GlobalControls({ children }: { children: ReactNode }) {
-  return <div className={styles.globalControls}>{children}</div>
+  return <div className={styles.globalControls}>{children}</div>;
 }
 
-export function Metrics({ children, 'aria-label': ariaLabel }: { children: ReactNode; 'aria-label': string }) {
-  return <dl className={styles.metrics} aria-label={ariaLabel}>{children}</dl>
+export function Metrics({
+  children,
+  "aria-label": ariaLabel,
+}: {
+  children: ReactNode;
+  "aria-label": string;
+}) {
+  return (
+    <dl className={styles.metrics} aria-label={ariaLabel}>
+      {children}
+    </dl>
+  );
 }
 
 export function Metric({ label, value }: MetricProps) {
@@ -26,14 +40,10 @@ export function Metric({ label, value }: MetricProps) {
       <dt>{label}</dt>
       <dd>{value}</dd>
     </div>
-  )
+  );
 }
 
-export function RegionEffectControl({
-  id,
-  value,
-  onChange,
-}: RegionEffectControlProps) {
+export function RegionEffectControl({ id, value, onChange }: RegionEffectControlProps) {
   return (
     <div className={styles.row}>
       <label htmlFor={id}>Region effect</label>
@@ -58,17 +68,17 @@ export function RegionEffectControl({
 }
 
 type RangeControlProps = {
-  id: string
-  label: string
-  hint?: string
-  disabled?: boolean
-  min: number
-  max: number
-  step: number
-  value: number
-  displayValue: string
-  onChange: (value: number) => void
-}
+  id: string;
+  label: string;
+  hint?: string;
+  disabled?: boolean;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  displayValue: string;
+  onChange: (value: number) => void;
+};
 
 export function RangeControl({
   id,
@@ -82,7 +92,7 @@ export function RangeControl({
   displayValue,
   onChange,
 }: RangeControlProps) {
-  const hintId = `${id}-hint`
+  const hintId = `${id}-hint`;
 
   return (
     <div className={styles.range}>
@@ -103,21 +113,30 @@ export function RangeControl({
       />
       {hint && <small id={hintId}>{hint}</small>}
     </div>
-  )
+  );
 }
 
 export function SettingsIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8.5h16m-16 7h16"></path></svg>
-  )
+    <svg width={24} height={24} viewBox="0 0 24 24">
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.5}
+        d="M4 8.5h16m-16 7h16"
+      ></path>
+    </svg>
+  );
 }
 
 type CameraToggleButtonProps = {
-  active: boolean
-  disabled?: boolean
-  onStart: () => void
-  onStop: () => void
-}
+  active: boolean;
+  disabled?: boolean;
+  onStart: () => void;
+  onStop: () => void;
+};
 
 export function CameraToggleButton({
   active,
@@ -125,17 +144,40 @@ export function CameraToggleButton({
   onStart,
   onStop,
 }: CameraToggleButtonProps) {
-  const title = active ? 'Abort Camera' : 'Start Camera'
+  const title = active ? "Abort Camera" : "Start Camera";
   if (active) {
     return (
-      <button type="button" onClick={onStop} aria-label="Abort" title={title} className={styles.camera}>
-        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24"><path fill="currentColor" d="M.97 3.97a.75.75 0 0 1 1.06 0l15 15a.75.75 0 1 1-1.06 1.06l-15-15a.75.75 0 0 1 0-1.06m16.28 12.09l2.69 2.69c.944.945 2.56.276 2.56-1.06V6.31c0-1.336-1.616-2.005-2.56-1.06l-2.69 2.69zm-1.5-8.56v8.068L4.682 4.5h8.068a3 3 0 0 1 3 3m-14.25 9V7.682l11.773 11.773q-.256.045-.523.045H4.5a3 3 0 0 1-3-3"></path></svg>
+      <button
+        type="button"
+        onClick={onStop}
+        aria-label="Abort"
+        title={title}
+        className={styles.camera}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24">
+          <path
+            fill="currentColor"
+            d="M.97 3.97a.75.75 0 0 1 1.06 0l15 15a.75.75 0 1 1-1.06 1.06l-15-15a.75.75 0 0 1 0-1.06m16.28 12.09l2.69 2.69c.944.945 2.56.276 2.56-1.06V6.31c0-1.336-1.616-2.005-2.56-1.06l-2.69 2.69zm-1.5-8.56v8.068L4.682 4.5h8.068a3 3 0 0 1 3 3m-14.25 9V7.682l11.773 11.773q-.256.045-.523.045H4.5a3 3 0 0 1-3-3"
+          ></path>
+        </svg>
       </button>
-    )
+    );
   }
   return (
-    <button type="button" onClick={onStart} aria-label="Start" disabled={disabled} title={title} className={styles.camera}>
-      <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24"><path fill="currentColor" d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h8.25a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3zm15.44 14.25l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06"></path></svg>
+    <button
+      type="button"
+      onClick={onStart}
+      aria-label="Start"
+      disabled={disabled}
+      title={title}
+      className={styles.camera}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} viewBox="0 0 24 24">
+        <path
+          fill="currentColor"
+          d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h8.25a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3zm15.44 14.25l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06"
+        ></path>
+      </svg>
     </button>
-  )
+  );
 }
