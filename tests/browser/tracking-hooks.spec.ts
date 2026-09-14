@@ -59,7 +59,7 @@ for (const mode of ["background", "color"] as const) {
       expect((await snapshot(page)).settings.targetColor).toBe("#00ff00");
     }
     const beforeResolution = await snapshot(page);
-    await update(page, { analysisLongEdge: 480, longEdge: 480 });
+    await update(page, { analysisLongEdge: 480 });
     expect((await snapshot(page))[mode].resets).toBeGreaterThan(beforeResolution[mode].resets);
     expect((await snapshot(page))[mode].instances).toBe(2);
     expect((await snapshot(page)).pendingFrames).toBe(1);

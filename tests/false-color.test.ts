@@ -4,8 +4,6 @@ import {
   FALSE_COLOR_BRIGHTNESS_WEIGHTS,
   FALSE_COLOR_STOPS,
   FALSE_COLOR_PALETTE,
-  FALSE_COLOR_FILTER_TABLES,
-  FALSE_COLOR_FILTER_MATRIX,
 } from "../src/shared/rendering/falseColor.ts";
 import { FalseColorRenderer } from "../src/shared/rendering/FalseColorRenderer.ts";
 import type { Track } from "../src/shared/tracking/types.ts";
@@ -34,25 +32,6 @@ test("False colorのRGBAテクスチャは配色定数と不均等な区間の�
       [...rgb, 255],
     );
   }
-});
-
-test("SVGの配色テーブルはWebGLの全256色と一致し、明るさ変換はalphaを保持する", () => {
-  for (const [channel, table] of FALSE_COLOR_FILTER_TABLES.entries()) {
-    const values = table.split(" ").map(Number);
-    assert.equal(values.length, 256);
-    for (let brightness = 0; brightness < 256; brightness++) {
-      assert.equal(
-        Math.round(values[brightness] * 255),
-        FALSE_COLOR_PALETTE[brightness * 4 + channel],
-      );
-    }
-  }
-  const matrix = FALSE_COLOR_FILTER_MATRIX.split(" ").map(Number);
-  assert.equal(matrix.length, 20);
-  for (let row = 0; row < 3; row++) {
-    assert.deepEqual(matrix.slice(row * 5, row * 5 + 5), [0.2126, 0.7152, 0.0722, 0, 0]);
-  }
-  assert.deepEqual(matrix.slice(15), [0, 0, 0, 1, 0]);
 });
 
 const viewport = {

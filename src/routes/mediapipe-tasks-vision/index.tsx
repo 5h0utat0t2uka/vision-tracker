@@ -10,13 +10,15 @@ import { useMediaPipeTracking } from "./hooks/useMediaPipeTracking.ts";
 import type { RegionEffect } from "../../shared/rendering/regionEffect.ts";
 import {
   CameraToggleButton,
+  CameraSelectControl,
+  NumericSelectControl,
   Metric,
   Metrics,
   GlobalControls,
   RegionEffectControl,
   RangeControl,
   SettingsIcon,
-} from "../../shared/ui/copntrols";
+} from "../../shared/ui/controls";
 import {
   DEFAULT_DETECTION_CATEGORIES,
   DEFAULT_INFERENCE_CONFIGURATION,
@@ -29,12 +31,11 @@ import {
   INFERENCE_FPS_OPTIONS,
   DEFAULT_INFERENCE_LONG_EDGE,
   INFERENCE_LONG_EDGES,
-  isInferenceLongEdge,
   type InferenceLongEdge,
   type DetectionCategory,
-} from "./components/config.ts";
+} from "./lib/config.ts";
 import { CaptureButton } from "../../shared/ui/capture";
-import { TIMING_LABELS, type TimingSummary } from "./components/timingConfig.ts";
+import { TIMING_LABELS, type TimingSummary } from "./lib/timingConfig.ts";
 
 export function MediaPipeTasksVisionObjectTracker() {
   const [heatmap] = useState(() => new Heatmap());
@@ -210,58 +211,35 @@ export function MediaPipeTasksVisionObjectTracker() {
           </select>
         </div>
 
-        <div className={popoverStyles.row}>
-          <label htmlFor="camera-device">Camera</label>
-          <select
-            id="camera-device"
-            value={camera.info?.deviceId ?? selectedDeviceId}
-            onChange={(event) => {
-              const deviceId = event.target.value;
-              setSelectedDeviceId(deviceId);
-              if (cameraActive) void camera.start(deviceId || undefined);
-            }}
-          >
-            <option value="">Default camera</option>
-            {camera.devices.map((device, index) => (
-              <option key={device.deviceId} value={device.deviceId}>
-                {device.label || `Camera ${index + 1}`}
-              </option>
-            ))}
-          </select>
-        </div>
+        <CameraSelectControl
+          id="camera-device"
+          value={camera.info?.deviceId ?? selectedDeviceId}
+          devices={camera.devices}
+          onChange={(deviceId) => {
+            setSelectedDeviceId(deviceId);
+            if (cameraActive) void camera.start(deviceId || undefined);
+          }}
+        />
 
-        <div className={popoverStyles.row}>
-          <label htmlFor="inference-rate">Inference FPS</label>
-          <select
-            id="inference-rate"
-            value={inferenceFps}
-            onChange={(event) => setInferenceFps(Number(event.target.value))}
-          >
-            {INFERENCE_FPS_OPTIONS.map((fps) => (
-              <option key={fps} value={fps}>
-                {fps} fps
-              </option>
-            ))}
-          </select>
-        </div>
+        <NumericSelectControl
+          id="inference-rate"
+          label="Inference FPS"
+          value={inferenceFps}
+          options={INFERENCE_FPS_OPTIONS}
+          formatOption={(fps) => `${fps} fps`}
+          onChange={setInferenceFps}
+        />
 
-        <div className={popoverStyles.row}>
-          <label htmlFor="inference-resolution">Inference resolution</label>
-          <select
-            id="inference-resolution"
-            value={inferenceLongEdge}
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              if (isInferenceLongEdge(value)) setInferenceLongEdge(value);
-            }}
-          >
-            {INFERENCE_LONG_EDGES.map((edge) => (
-              <option key={edge} value={edge}>
-                {edge} px{edge === recommendedInferenceLongEdge ? " · Recommended" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
+        <NumericSelectControl
+          id="inference-resolution"
+          label="Inference resolution"
+          value={inferenceLongEdge}
+          options={INFERENCE_LONG_EDGES}
+          formatOption={(edge) =>
+            `${edge} px${edge === recommendedInferenceLongEdge ? " · Recommended" : ""}`
+          }
+          onChange={setInferenceLongEdge}
+        />
         <RegionEffectControl
           id="mediapipe-region-effect"
           value={regionEffect}

@@ -7,36 +7,30 @@ import { useRef, useState } from "react";
 import { Link } from "react-router";
 import { useCamera } from "../../hooks/useCamera.ts";
 import type { CameraStatus } from "../../camera/CameraSession.ts";
-import { BACKGROUND_TIMING_LABELS } from "./components/TrackingEngine.ts";
+import {
+  BACKGROUND_TIMING_LABELS,
+  BACKGROUND_FPS_OPTIONS,
+  DEFAULT_BACKGROUND_FPS,
+  DEFAULT_BACKGROUND_SETTINGS,
+} from "./lib/config.ts";
 import { useBackgroundTracking } from "./hooks/useBackgroundTracking.ts";
-import type { TrackingSettings } from "./components/types.ts";
 import {
   ANALYSIS_LONG_EDGES,
   DEFAULT_ANALYSIS_LONG_EDGE,
-  isAnalysisLongEdge,
   type AnalysisLongEdge,
 } from "../../shared/tracking/analysisConfig.ts";
 import {
   CameraToggleButton,
+  CameraSelectControl,
+  NumericSelectControl,
   Metric,
   Metrics,
   GlobalControls,
   RegionEffectControl,
   RangeControl,
   SettingsIcon,
-} from "../../shared/ui/copntrols";
+} from "../../shared/ui/controls";
 import { CaptureButton } from "../../shared/ui/capture";
-
-const DEFAULT_SETTINGS: TrackingSettings = {
-  motionThreshold: 70,
-  backgroundTimeConstantMs: 3300,
-  minBlobAreaRatio: 0.02,
-  maxMissingDurationMs: 300,
-  maxMatchDistanceRatio: 0.12,
-  trailDurationMs: 1700,
-  showTrail: true,
-  regionEffect: "none",
-};
 
 export function BackgroundSubtractionBlobTracker() {
   const [heatmap] = useState(() => new Heatmap());
@@ -45,9 +39,9 @@ export function BackgroundSubtractionBlobTracker() {
   const filterCanvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLElement>(null);
-  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState(DEFAULT_BACKGROUND_SETTINGS);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
-  const [targetFps, setTargetFps] = useState(30);
+  const [targetFps, setTargetFps] = useState(DEFAULT_BACKGROUND_FPS);
   const [analysisLongEdge, setAnalysisLongEdge] = useState<AnalysisLongEdge>(
     DEFAULT_ANALYSIS_LONG_EDGE,
   );
@@ -137,11 +131,7 @@ export function BackgroundSubtractionBlobTracker() {
           <SettingsIcon />
         </button>
         <CameraToggleButton
-          active={
-            camera.status === "running" ||
-            camera.status === "suspended" ||
-            camera.status === "requesting"
-          }
+          active={cameraActive}
           onStart={() => void camera.start(selectedDeviceId || undefined)}
           onStop={camera.stop}
         />
@@ -201,55 +191,31 @@ export function BackgroundSubtractionBlobTracker() {
             }
           />
         </div>
-        <div className={popoverStyles.row}>
-          <label htmlFor="camera-device">Camera</label>
-          <select
-            id="camera-device"
-            value={camera.info?.deviceId ?? selectedDeviceId}
-            onChange={(event) => {
-              const deviceId = event.target.value;
-              setSelectedDeviceId(deviceId);
-              if (cameraActive) void camera.start(deviceId || undefined);
-            }}
-          >
-            <option value="">Default camera</option>
-            {camera.devices.map((device, index) => (
-              <option key={device.deviceId} value={device.deviceId}>
-                {device.label || `Camera ${index + 1}`}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={popoverStyles.row}>
-          <label htmlFor="analysis-rate">Frame rate limit</label>
-          <select
-            id="analysis-rate"
-            value={targetFps}
-            onChange={(event) => setTargetFps(Number(event.target.value))}
-          >
-            <option value={30}>30 fps</option>
-            <option value={20}>20 fps</option>
-            <option value={15}>15 fps</option>
-          </select>
-        </div>
-        <div className={popoverStyles.row}>
-          <label htmlFor="analysis-resolution">Analysis resolution</label>
-          <select
-            id="analysis-resolution"
-            value={analysisLongEdge}
-            // aria-describedby="analysis-resolution-hint"
-            onChange={(event) => {
-              const value = Number(event.target.value);
-              if (isAnalysisLongEdge(value)) setAnalysisLongEdge(value);
-            }}
-          >
-            {ANALYSIS_LONG_EDGES.map((longEdge) => (
-              <option key={longEdge} value={longEdge}>
-                {longEdge} px
-              </option>
-            ))}
-          </select>
-        </div>
+        <CameraSelectControl
+          id="camera-device"
+          value={camera.info?.deviceId ?? selectedDeviceId}
+          devices={camera.devices}
+          onChange={(deviceId) => {
+            setSelectedDeviceId(deviceId);
+            if (cameraActive) void camera.start(deviceId || undefined);
+          }}
+        />
+        <NumericSelectControl
+          id="analysis-rate"
+          label="Frame rate limit"
+          value={targetFps}
+          options={BACKGROUND_FPS_OPTIONS}
+          formatOption={(fps) => `${fps} fps`}
+          onChange={setTargetFps}
+        />
+        <NumericSelectControl
+          id="analysis-resolution"
+          label="Analysis resolution"
+          value={analysisLongEdge}
+          options={ANALYSIS_LONG_EDGES}
+          formatOption={(edge) => `${edge} px`}
+          onChange={setAnalysisLongEdge}
+        />
         {/*<small id="analysis-resolution-hint">
           解析する長辺の画素数で、大きいほど細部を解析し処理負荷が増加します。
         </small>*/}

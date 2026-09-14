@@ -1,3 +1,5 @@
+import { getDownscaledSize } from "../../../shared/rendering/geometry.ts";
+
 export const DETECTION_CATEGORIES = [
   { value: "person", label: "Person" },
   { value: "car", label: "Car" },
@@ -65,11 +67,7 @@ export function getInferenceSize(
     throw new RangeError("Invalid source dimensions.");
   }
   if (!isInferenceLongEdge(longEdge)) throw new RangeError("Invalid inference resolution.");
-  const scale = Math.min(1, longEdge / Math.max(width, height));
-  return {
-    width: Math.max(1, Math.round(width * scale)),
-    height: Math.max(1, Math.round(height * scale)),
-  };
+  return getDownscaledSize(width, height, longEdge);
 }
 
 const WASM_PATH = "mediapipe/wasm";

@@ -4,12 +4,9 @@ import type { Heatmap } from "../../../shared/heatmap/Heatmap.ts";
 import { ProcessingTimings, type TimingSummary } from "../../../shared/ProcessingTimings.ts";
 import type { AnalysisLongEdge } from "../../../shared/tracking/analysisConfig.ts";
 import { FrameScheduler } from "../../../shared/tracking/FrameScheduler.ts";
-import {
-  type FrameResult,
-  BACKGROUND_TIMING_LABELS,
-  TrackingEngine,
-} from "../components/TrackingEngine.ts";
-import type { TrackingSettings } from "../components/types.ts";
+import { type FrameResult, TrackingEngine } from "../lib/TrackingEngine.ts";
+import type { TrackingSettings } from "../lib/types.ts";
+import { BACKGROUND_TIMING_LABELS } from "../lib/config.ts";
 
 type RuntimeMetrics = FrameResult & {
   analysisFps: number;

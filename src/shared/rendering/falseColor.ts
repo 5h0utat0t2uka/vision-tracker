@@ -36,20 +36,3 @@ for (let brightness = 0; brightness < 256; brightness++) {
   }
   FALSE_COLOR_PALETTE[brightness * 4 + 3] = 255;
 }
-
-// SVG table transfer uses evenly spaced entries in [0, 1]. Reuse the WebGL
-// palette so both rendering paths follow the same stops and byte rounding.
-export const FALSE_COLOR_FILTER_TABLES = [0, 1, 2].map((channel) =>
-  Array.from(
-    { length: 256 },
-    (_, brightness) => FALSE_COLOR_PALETTE[brightness * 4 + channel] / 255,
-  ).join(" "),
-);
-export const FALSE_COLOR_FILTER_MATRIX = [
-  ...Array.from({ length: 3 }, () => [...FALSE_COLOR_BRIGHTNESS_WEIGHTS, 0, 0]).flat(),
-  0,
-  0,
-  0,
-  1,
-  0,
-].join(" ");

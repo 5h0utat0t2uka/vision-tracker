@@ -43,17 +43,21 @@ export class Heatmap {
   private movement = new Float64Array(0);
   private previous = new Map<number, Observation>();
   private timestamp: number | null = null;
-  private revision = 0;
+  private revisions = { occupancy: 0, movement: 0 };
   private paintedRevision = -1;
   private paintedMode: HeatmapMode | null = null;
   private canvas: HTMLCanvasElement | null = null;
+  private context: CanvasRenderingContext2D | null = null;
+  private imageData: ImageData | null = null;
+  private smoothed = new Float64Array(0);
 
   reset(): void {
     this.occupancy.fill(0);
     this.movement.fill(0);
     this.previous.clear();
     this.timestamp = null;
-    this.revision++;
+    this.revisions.occupancy++;
+    this.revisions.movement++;
   }
 
   values(mode: HeatmapMode): Float64Array {
@@ -80,6 +84,8 @@ export class Heatmap {
     if (time === this.timestamp) return;
     if (this.timestamp !== null && time < this.timestamp) this.reset();
     const current = new Map<number, Observation>();
+    let occupancyChanged = false;
+    let movementChanged = false;
     const diagonal = Math.hypot(sourceWidth, sourceHeight);
     for (const track of tracks) {
       if (track.state !== "confirmed" || track.lastObservedAtMs !== time) continue;
@@ -119,31 +125,40 @@ export class Heatmap {
           width: previous.box.width + (observation.box.width - previous.box.width) * t,
           height: previous.box.height + (observation.box.height - previous.box.height) * t,
         };
-        this.addRectangle(boxAt, seconds / steps);
+        if (this.addRectangle(boxAt, seconds / steps)) occupancyChanged = true;
         const x = Math.floor((previous.x + dx * t) * width);
         const y = Math.floor((previous.y + dy * t) * height);
-        if (x >= 0 && x < width && y >= 0 && y < height)
+        if (distance > 0 && x >= 0 && x < width && y >= 0 && y < height) {
           this.movement[y * width + x] += distance / steps;
+          movementChanged = true;
+        }
       }
     }
     this.previous = current;
     this.timestamp = time;
-    this.revision++;
+    // Empty observations, stationary movement and offscreen tracks don't invalidate textures.
+    if (occupancyChanged) this.revisions.occupancy++;
+    if (movementChanged) this.revisions.movement++;
   }
 
-  private addRectangle(box: Rect, seconds: number): void {
+  private addRectangle(box: Rect, seconds: number): boolean {
     const left = Math.max(0, box.x * this.width);
     const top = Math.max(0, box.y * this.height);
     const right = Math.min(this.width, (box.x + box.width) * this.width);
     const bottom = Math.min(this.height, (box.y + box.height) * this.height);
-    for (let y = Math.floor(top); y < Math.ceil(bottom); y++) {
-      for (let x = Math.floor(left); x < Math.ceil(right); x++) {
-        const coverage =
-          (Math.min(x + 1, right) - Math.max(x, left)) *
-          (Math.min(y + 1, bottom) - Math.max(y, top));
-        this.occupancy[y * this.width + x] += seconds * coverage;
+    if (right <= left || bottom <= top || seconds <= 0) return false;
+    const startX = Math.floor(left);
+    const endX = Math.ceil(right);
+    const endY = Math.ceil(bottom);
+    for (let y = Math.floor(top); y < endY; y++) {
+      const verticalCoverage = Math.min(y + 1, bottom) - Math.max(y, top);
+      const rowOffset = y * this.width;
+      for (let x = startX; x < endX; x++) {
+        const coverage = (Math.min(x + 1, right) - Math.max(x, left)) * verticalCoverage;
+        this.occupancy[rowOffset + x] += seconds * coverage;
       }
     }
+    return true;
   }
 
   draw(
@@ -156,15 +171,26 @@ export class Heatmap {
   ): void {
     if (!this.visible || this.width === 0) return;
     this.canvas ??= document.createElement("canvas");
-    if (this.paintedRevision !== this.revision || this.paintedMode !== this.mode) {
-      this.canvas.width = this.width;
-      this.canvas.height = this.height;
-      const pixels = this.canvas.getContext("2d");
+    if (this.paintedRevision !== this.revisions[this.mode] || this.paintedMode !== this.mode) {
+      this.context ??= this.canvas.getContext("2d");
+      const pixels = this.context;
       if (!pixels) throw new Error("ヒートマップ用Canvasを初期化できませんでした。");
-      const data = pixels.createImageData(this.width, this.height);
+      // Assigning canvas dimensions resets its bitmap, even when the size is unchanged.
+      // Retain the context, ImageData and blur scratch buffer until the grid changes size.
+      if (
+        !this.imageData ||
+        this.canvas.width !== this.width ||
+        this.canvas.height !== this.height
+      ) {
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        this.imageData = pixels.createImageData(this.width, this.height);
+        this.smoothed = new Float64Array(this.width * this.height);
+      }
+      const data = this.imageData;
       // Blur scalar values before coloring; colors themselves are never accumulated.
       const values = this.mode === "occupancy" ? this.occupancy : this.movement;
-      const smoothed = new Float64Array(values.length);
+      const smoothed = this.smoothed;
       const kernel = BLUR_KERNELS[this.mode];
       const radius = (kernel.length - 1) / 2;
       for (let row = 0; row < this.height; row++) {
@@ -197,7 +223,7 @@ export class Heatmap {
         }
       }
       pixels.putImageData(data, 0, 0);
-      this.paintedRevision = this.revision;
+      this.paintedRevision = this.revisions[this.mode];
       this.paintedMode = this.mode;
     }
     context.save();

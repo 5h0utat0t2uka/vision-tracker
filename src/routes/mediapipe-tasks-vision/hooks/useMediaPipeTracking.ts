@@ -6,10 +6,7 @@ import { BlobTracker } from "../../../shared/tracking/BlobTracker.ts";
 import { OverlayRenderer } from "../../../shared/tracking/OverlayRenderer.ts";
 import type { TrackerSettings } from "../../../shared/tracking/types.ts";
 import type { RegionEffect } from "../../../shared/rendering/regionEffect.ts";
-import {
-  ObjectDetectorClient,
-  type ObjectDetectorResult,
-} from "../components/ObjectDetectorClient.ts";
+import { ObjectDetectorClient, type ObjectDetectorResult } from "../lib/ObjectDetectorClient.ts";
 import {
   METRICS_REPORT_INTERVAL_MS,
   TRACK_MISSING_TOLERANCE_MS,
@@ -17,8 +14,8 @@ import {
   type DetectionCategory,
   type InferenceConfiguration,
   type InferenceLongEdge,
-} from "../components/config.ts";
-import { TIMING_LABELS, type TimingSummary } from "../components/timingConfig.ts";
+} from "../lib/config.ts";
+import { TIMING_LABELS, type TimingSummary } from "../lib/timingConfig.ts";
 
 const TRACKER_SETTINGS: TrackerSettings = {
   missingTimeBasis: "first-miss",

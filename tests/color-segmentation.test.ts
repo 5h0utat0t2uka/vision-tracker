@@ -7,12 +7,12 @@ import {
   hexToHsv,
   isHexColor,
   rgbToHsv,
-} from "../src/routes/color-segmentation/components/ColorDetector.ts";
-import { ColorTrackingEngine } from "../src/routes/color-segmentation/components/ColorTrackingEngine.ts";
+} from "../src/routes/color-segmentation/lib/ColorDetector.ts";
+import { ColorTrackingEngine } from "../src/routes/color-segmentation/lib/ColorTrackingEngine.ts";
 import {
   DEFAULT_COLOR_SETTINGS,
   type ColorTrackingSettings,
-} from "../src/routes/color-segmentation/components/config.ts";
+} from "../src/routes/color-segmentation/lib/config.ts";
 import { ConnectedComponents } from "../src/shared/tracking/ConnectedComponents.ts";
 import { BlobTracker } from "../src/shared/tracking/BlobTracker.ts";
 
@@ -248,7 +248,7 @@ test("背景初期化なしで検出し、色変更で追跡をリセット、�
   for (const regionEffect of [
     "invert",
     "false-color-webgl",
-    "false-color-filter",
+    "greenscale",
     "none",
     "grayscale",
   ] as const) {

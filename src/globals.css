@@ -36,13 +36,6 @@ button {
 .filter-canvas[data-region-effect='invert'] {
   filter: invert(1);
 }
-.filter-canvas[data-region-effect='false-color-filter'] {
-  filter: url(#region-false-color);
-}
-.region-effect-definitions {
-  position: absolute;
-  pointer-events: none;
-}
 .filter-canvas[data-region-effect='none'] {
   display: none;
 }

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { ConnectedComponents } from "../src/shared/tracking/ConnectedComponents.ts";
-import { MotionDetector } from "../src/routes/background-subtraction/components/MotionDetector.ts";
-import type { TrackingSettings } from "../src/routes/background-subtraction/components/types.ts";
+import { MotionDetector } from "../src/routes/background-subtraction/lib/MotionDetector.ts";
+import type { TrackingSettings } from "../src/routes/background-subtraction/lib/types.ts";
 import { BlobTracker } from "../src/shared/tracking/BlobTracker.ts";
 import { FrameScheduler } from "../src/shared/tracking/FrameScheduler.ts";
 import { timeConstantFrom30FpsRate } from "../src/shared/tracking/timing.ts";
