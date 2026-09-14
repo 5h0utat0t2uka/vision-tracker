@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { OneEuroFilter } from "../src/shared/tracking/OneEuroFilter.ts";
-import { BlobTracker, TRAIL_SMOOTHING } from "../src/shared/tracking/BlobTracker.ts";
+import { BlobTracker, SMOOTH_TRAIL, TRAIL_SMOOTHING } from "../src/shared/tracking/BlobTracker.ts";
 import { Heatmap } from "../src/shared/heatmap/Heatmap.ts";
 import { timeConstantFrom30FpsRate, timeWeight } from "../src/shared/tracking/timing.ts";
 import type { Detection, TrackerSettings } from "../src/shared/tracking/types.ts";
@@ -13,6 +13,50 @@ const SETTINGS: TrackerSettings = {
   maxMatchDistanceRatio: 0.2,
   trailDurationMs: 1700,
 };
+
+test("tracker defaults to SMOOTH_TRAIL", () => {
+  const tracker = new BlobTracker(320, 240);
+  const reference = new BlobTracker(320, 240, SMOOTH_TRAIL);
+  for (const [time, x] of [
+    [0, 100],
+    [100, 104],
+    [200, 102],
+  ]) {
+    assert.deepEqual(
+      tracker.update([detection(x, 80)], time, SETTINGS),
+      reference.update([detection(x, 80)], time, SETTINGS),
+    );
+  }
+});
+
+test("disabled smoothing keeps raw trail coordinates without invoking the filter", (t) => {
+  const filter = t.mock.method(OneEuroFilter.prototype, "filter", () => {
+    throw new Error("Disabled smoothing must not call OneEuroFilter.");
+  });
+  const tracker = new BlobTracker(320, 240, false);
+  const expected = [];
+  for (const [timestampMs, x, y] of [
+    [0, 100, 80],
+    [100, 104, 82],
+    [200, 102, 81],
+  ]) {
+    const observed = detection(x, y);
+    const tracks = tracker.update([observed], timestampMs, SETTINGS);
+    expected.push({ x, y, timestampMs });
+    if (tracks.length) {
+      assert.deepEqual(tracks[0].trail, expected);
+      assert.deepEqual(tracks[0].lastObservedCenter, observed.center);
+    }
+  }
+  assert.equal(filter.mock.callCount(), 0);
+  tracker.reset();
+  tracker.update([detection(200, 120)], 0, SETTINGS);
+  const [track] = tracker.update([detection(202, 121)], 100, SETTINGS);
+  assert.deepEqual(track.trail, [
+    { x: 200, y: 120, timestampMs: 0 },
+    { x: 202, y: 121, timestampMs: 100 },
+  ]);
+});
 
 test("One Euro Filter follows the adaptive cutoff equations with irregular timestamps", () => {
   const filter = new OneEuroFilter(OPTIONS);
@@ -99,7 +143,7 @@ test("invalid options and samples are rejected without poisoning state", () => {
 });
 
 test("tracker smooths only trails, preserving raw measurements and velocity", () => {
-  const tracker = new BlobTracker(320, 240);
+  const tracker = new BlobTracker(320, 240, true);
   tracker.update([detection(100, 80)], 0, SETTINGS);
   const observed = detection(104, 82);
   const [track] = tracker.update([observed], 100, SETTINGS);
@@ -120,7 +164,7 @@ test("tracker smooths only trails, preserving raw measurements and velocity", ()
 });
 
 test("filtered trails leave both heatmap measurements identical to raw trails", () => {
-  const tracker = new BlobTracker(320, 240);
+  const tracker = new BlobTracker(320, 240, true);
   const filtered = new Heatmap();
   const raw = new Heatmap();
   for (const [timestamp, x, y] of [
@@ -148,8 +192,8 @@ test("filtered trails leave both heatmap measurements identical to raw trails", 
 });
 
 test("trail smoothing is invariant under uniform resolution scaling", () => {
-  const small = new BlobTracker(320, 240);
-  const large = new BlobTracker(1920, 1440);
+  const small = new BlobTracker(320, 240, true);
+  const large = new BlobTracker(1920, 1440, true);
   for (const [timestamp, x, y] of [
     [0, 100, 80],
     [100, 104, 82],
@@ -168,30 +212,32 @@ test("trail smoothing is invariant under uniform resolution scaling", () => {
   }
 });
 
-for (const reason of ["lost", "long gap", "expired trail"] as const) {
-  test(`reacquisition after ${reason} starts a new trail without a connecting line`, () => {
-    const tracker = new BlobTracker(320, 240);
-    tracker.update([detection(100, 80)], 0, SETTINGS);
-    const [original] = tracker.update([detection(104, 82)], 100, SETTINGS);
-    const savedTrail = structuredClone(original.trail);
-    if (reason === "lost") {
-      tracker.update([], 200, SETTINGS);
-      assert.deepEqual(original.trail, savedTrail);
-    }
-    const timestamp = reason === "long gap" ? 101 + TRAIL_SMOOTHING.resetGapMs : 300;
-    const settings = reason === "expired trail" ? { ...SETTINGS, trailDurationMs: 50 } : SETTINGS;
-    const observed = detection(110, 86);
-    const [track] = tracker.update([observed], timestamp, settings);
-    assert.equal(track.id, original.id);
-    assert.equal(track.trail.length, 1);
-    near(track.trail[0].x, observed.center.x);
-    near(track.trail[0].y, observed.center.y);
-    assert.equal(track.trail[0].timestampMs, timestamp);
-  });
+for (const smoothTrail of [false, true]) {
+  for (const reason of ["lost", "long gap", "expired trail"] as const) {
+    test(`smoothing=${smoothTrail}: reacquisition after ${reason} starts a new trail without a connecting line`, () => {
+      const tracker = new BlobTracker(320, 240, smoothTrail);
+      tracker.update([detection(100, 80)], 0, SETTINGS);
+      const [original] = tracker.update([detection(104, 82)], 100, SETTINGS);
+      const savedTrail = structuredClone(original.trail);
+      if (reason === "lost") {
+        tracker.update([], 200, SETTINGS);
+        assert.deepEqual(original.trail, savedTrail);
+      }
+      const timestamp = reason === "long gap" ? 101 + TRAIL_SMOOTHING.resetGapMs : 300;
+      const settings = reason === "expired trail" ? { ...SETTINGS, trailDurationMs: 50 } : SETTINGS;
+      const observed = detection(110, 86);
+      const [track] = tracker.update([observed], timestamp, settings);
+      assert.equal(track.id, original.id);
+      assert.equal(track.trail.length, 1);
+      near(track.trail[0].x, observed.center.x);
+      near(track.trail[0].y, observed.center.y);
+      assert.equal(track.trail[0].timestampMs, timestamp);
+    });
+  }
 }
 
 test("each track has independent filters and reset does not reuse filter history", () => {
-  const tracker = new BlobTracker(320, 240);
+  const tracker = new BlobTracker(320, 240, true);
   tracker.update([detection(80, 80), detection(240, 160)], 0, SETTINGS);
   const tracks = tracker.update([detection(84, 82), detection(240, 160)], 100, SETTINGS);
   assert.equal(tracks.length, 2);

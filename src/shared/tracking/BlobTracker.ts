@@ -5,6 +5,7 @@ import { timeConstantFrom30FpsRate, timeWeight } from "./timing.ts";
 const VELOCITY_TIME_CONSTANT_MS = timeConstantFrom30FpsRate(0.4);
 const LOST_VELOCITY_TIME_CONSTANT_MS = timeConstantFrom30FpsRate(0.1);
 const SEARCH_EXPANSION_DURATION_MS = (1000 * 4) / 30;
+export const SMOOTH_TRAIL = false;
 
 export const TRAIL_SMOOTHING = {
   // Lower values suppress more slow-motion jitter, but increase visual lag.
@@ -25,14 +26,16 @@ type MatchCandidate = {
 export class BlobTracker {
   private readonly width: number;
   private readonly height: number;
+  private readonly smoothTrail: boolean;
   private tracks: Track[] = [];
   private nextId = 1;
   private previousTimestampMs: number | null = null;
   private trailFilters = new WeakMap<Track, { x: OneEuroFilter; y: OneEuroFilter }>();
 
-  constructor(width: number, height: number) {
+  constructor(width: number, height: number, smoothTrail: boolean = SMOOTH_TRAIL) {
     this.width = width;
     this.height = height;
+    this.smoothTrail = smoothTrail;
   }
 
   reset(): void {
@@ -200,13 +203,21 @@ export class BlobTracker {
   }
 
   private appendTrail(track: Track, detection: Detection, timestampMs: number): void {
-    let filters = this.trailFilters.get(track);
+    // Break trails across interruptions even when smoothing is disabled.
     if (
-      !filters ||
       track.state === "lost" ||
       track.trail.length === 0 ||
       timestampMs - track.lastObservedAtMs > TRAIL_SMOOTHING.resetGapMs
     ) {
+      track.trail = [];
+      this.trailFilters.delete(track);
+    }
+    if (!this.smoothTrail) {
+      track.trail.push({ ...detection.center, timestampMs });
+      return;
+    }
+    let filters = this.trailFilters.get(track);
+    if (!filters) {
       filters = { x: new OneEuroFilter(TRAIL_SMOOTHING), y: new OneEuroFilter(TRAIL_SMOOTHING) };
       this.trailFilters.set(track, filters);
       track.trail = [];
