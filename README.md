@@ -15,6 +15,24 @@ Camera frames are processed locally and are not uploaded.
   - 動線・ヒートマップ生成
   - 
 
+<!--## Tracking Hooks
+各ページは表示・設定値・DOMのRef・`useCamera`によるカメラ操作を担当し、エンジンの準備から終了までをモード別Hookに分離しています。
+- `src/routes/background-subtraction/hooks/useBackgroundTracking.ts`
+- `src/routes/color-segmentation/hooks/useColorTracking.ts`
+- `src/routes/mediapipe-tasks-vision/hooks/useMediaPipeTracking.ts`
+
+Hookはエンジン・Worker・Renderer・計測バッファを内部で管理し、メトリクス、状態／エラー、`resetTimings()`を返します。処理本体は既存のEngine・Clientクラスに残しています。ヒートマップはページが生成した同じインスタンスをHookと設定UIに渡します。
+表示設定・FPSの最新値は`useEffectEvent`で読み取り、変更だけではWorkerやフレームループを再生成しません。モデル・解像度・検出条件の変更に必要な再生成／リセットは、それぞれのEffectで行います。MediaPipeの設定変更は150msのデバウンスと既存Clientの世代管理を維持します。停止・終了時にはフレームコールバックを解除し、非表示中は処理をスキップします。非表示への切り替えでも追跡状態をリセットし、古い非同期結果を破棄します。
+
+検証コマンド：
+```sh
+nix develop -c pnpm test
+# 初回のみ、テスト用ブラウザを導入
+nix develop -c pnpm exec playwright install chromium
+nix develop -c pnpm test:browser
+```
+ブラウザテストはローカルの開発サーバーを起動し、Strict Mode、設定反映、停止・再開、古い推論結果の破棄、画面離脱時の終了処理を検証します。合成映像・模擬Workerを使用し、実カメラや学習モデルの精度は検証しません。-->
+
 ## Routes
 - `/` — tracking method selection
 - `/background-subtraction`
