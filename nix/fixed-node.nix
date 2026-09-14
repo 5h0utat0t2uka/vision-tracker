@@ -3,26 +3,36 @@
 let
   inherit (pkgs.stdenv.hostPlatform) isDarwin isLinux isAarch64;
 
-  nodeVersion = "24.20.0";
+  /*
+  darwin-arm64, darwin-x64, linux-arm64, linux-x64それぞれのhashを取得
+
+  for slug in darwin-arm64 darwin-x64 linux-arm64:tar.xz linux-x64:tar.xz; do
+    v=24.20.0; p="${slug%%:*}"; ext="${slug#*:}"; [ "$ext" = "$p" ] && ext=tar.gz
+    nix store prefetch-file --json \
+      "https://nodejs.org/dist/v${v}/node-v${v}-${p}.${ext}" | jq -r '.hash'
+  done
+  */
+
+  nodeVersion = "24.21.0";
   pnpmVersion = "10.34.0";
 
   nodePlatform =
     if isDarwin && isAarch64 then {
       slug = "darwin-arm64";
       ext = "tar.gz";
-      hash = "sha256-QOVgfl7LPbkZJyN3baLXXZZiYPx0p6nnMcG9Z92pa8g=";
+      hash = "sha256-vtfupTJeEQjzLOUijd1qXw8IpJnuQqp0Qq6lg3AvYFc=";
     } else if isDarwin && !isAarch64 then {
       slug = "darwin-x64";
       ext = "tar.gz";
-      hash = "sha256-nlsmRM8Qe++2rvymdrltMpa8EBOAlvAi7TeNYjPtgfQ=";
+      hash = "sha256-FGLLOzBGuBXPjqQ209pFDsGp8R2sflpGsK2lMF1+gJc=";
     } else if isLinux && isAarch64 then {
       slug = "linux-arm64";
       ext = "tar.xz";
-      hash = "sha256-X03athDBqyAWs8Inzr2/bZSVFhSH5HOce5AJBZX0Zfc=";
+      hash = "sha256-atEyXtvbVknDebdaI3FHpmbJXU+a6NNA/vLRV10omtI=";
     } else if isLinux then {
       slug = "linux-x64";
       ext = "tar.xz";
-      hash = "sha256-LywNoWIxjw3kdmVBDHyMLtPTbI8xBd5LvGEXbHCny/I=";
+      hash = "sha256-/Y5Z1aURUQ9qKYr7VI8Yx9KxvkBNi0on2U++SfVsstY=";
     } else
       throw "Unsupported system: ${system}";
 
@@ -71,4 +81,3 @@ in
 {
   inherit nodejs pnpm;
 }
-

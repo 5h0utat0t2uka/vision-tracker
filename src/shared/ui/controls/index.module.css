@@ -1,8 +1,8 @@
-/*@keyframes blink {
+@keyframes blink {
   0% { opacity: 1; }
   50% { opacity: 0; }
   100% { opacity: 1; }
-}*/
+}
 
 .metrics {
   z-index: 3;
@@ -129,14 +129,13 @@
       background: transparent;
       padding: 0;
     }
-    /*&:is(.camera) {
-      animation: blink 1.2s infinite;
-    }*/
+
     &:is([aria-label="Abort"]) {
       color: red;
     }
     &:is([aria-label="Start"]) {
       color: dodgerblue;
+      animation: blink 1.2s infinite;
     }
   }
   div {
