@@ -3,24 +3,24 @@ import { createRoot } from "react-dom/client";
 import { useBackgroundTracking } from "../../src/routes/background-subtraction/hooks/useBackgroundTracking.ts";
 import { useColorTracking } from "../../src/routes/color-segmentation/hooks/useColorTracking.ts";
 import { useMediaPipeTracking } from "../../src/routes/mediapipe-tasks-vision/hooks/useMediaPipeTracking.ts";
-import { TrackingEngine } from "../../src/routes/background-subtraction/components/TrackingEngine.ts";
+import { TrackingEngine } from "../../src/routes/background-subtraction/lib/TrackingEngine.ts";
 import {
   ColorTrackingEngine,
   INITIAL_COLOR_RESULT,
-} from "../../src/routes/color-segmentation/components/ColorTrackingEngine.ts";
+} from "../../src/routes/color-segmentation/lib/ColorTrackingEngine.ts";
 import {
   DEFAULT_COLOR_SETTINGS,
   type ColorTrackingSettings,
-} from "../../src/routes/color-segmentation/components/config.ts";
-import type { TrackingSettings } from "../../src/routes/background-subtraction/components/types.ts";
-import { DEFAULT_INFERENCE_CONFIGURATION } from "../../src/routes/mediapipe-tasks-vision/components/config.ts";
+} from "../../src/routes/color-segmentation/lib/config.ts";
+import type { TrackingSettings } from "../../src/routes/background-subtraction/lib/types.ts";
+import { DEFAULT_INFERENCE_CONFIGURATION } from "../../src/routes/mediapipe-tasks-vision/lib/config.ts";
 import { OverlayRenderer } from "../../src/shared/tracking/OverlayRenderer.ts";
 import { Heatmap } from "../../src/shared/heatmap/Heatmap.ts";
 import type { CameraStatus } from "../../src/camera/CameraSession.ts";
 import type {
   DetectorWorkerRequest,
   DetectorWorkerResponse,
-} from "../../src/routes/mediapipe-tasks-vision/components/protocol.ts";
+} from "../../src/routes/mediapipe-tasks-vision/lib/protocol.ts";
 
 // Exercise real React Effects/StrictMode and ObjectDetectorClient. Only browser
 // frame delivery and expensive engine/Worker processing are controlled here.

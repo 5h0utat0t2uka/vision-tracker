@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import type {
   DetectorWorkerRequest,
   DetectorWorkerResponse,
-} from "../../src/routes/mediapipe-tasks-vision/components/protocol.ts";
+} from "../../src/routes/mediapipe-tasks-vision/lib/protocol.ts";
 
 declare global {
   interface Window {
