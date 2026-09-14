@@ -6,6 +6,69 @@ import {
 } from "../../rendering/regionEffect.ts";
 import styles from "./index.module.css";
 
+// Controlled inputs: camera lifecycle and mode-specific resets stay with the page.
+export function CameraSelectControl({
+  id,
+  value,
+  devices,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  devices: readonly Pick<MediaDeviceInfo, "deviceId" | "label">[];
+  onChange: (deviceId: string) => void;
+}) {
+  return (
+    <div className={styles.row}>
+      <label htmlFor={id}>Camera</label>
+      <select id={id} value={value} onChange={(event) => onChange(event.currentTarget.value)}>
+        <option value="">Default camera</option>
+        {devices.map((device, index) => (
+          <option key={device.deviceId} value={device.deviceId}>
+            {device.label || `Camera ${index + 1}`}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+export function NumericSelectControl<Value extends number>({
+  id,
+  label,
+  value,
+  options,
+  formatOption,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: Value;
+  options: readonly Value[];
+  formatOption: (value: Value) => string;
+  onChange: (value: Value) => void;
+}) {
+  return (
+    <div className={styles.row}>
+      <label htmlFor={id}>{label}</label>
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => {
+          const selected = options.find((option) => option === Number(event.currentTarget.value));
+          if (selected !== undefined) onChange(selected);
+        }}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {formatOption(option)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 type MetricProps = {
   label: string;
   value: string;

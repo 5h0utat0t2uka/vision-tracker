@@ -14,14 +14,7 @@ import {
   type AnalysisLongEdge,
 } from "../../../shared/tracking/analysisConfig.ts";
 
-export const BACKGROUND_TIMING_LABELS = {
-  capture: "CAPTURE",
-  motion: "BACKGROUND / OPENING",
-  components: "BLOB EXTRACTION",
-  tracking: "TRACKING TIME",
-  render: "DRAW SUBMISSION",
-  total: "PROCESSING",
-} as const;
+import { BACKGROUND_TIMING_LABELS } from "./config.ts";
 
 export type FrameResult = {
   trackCount: number;

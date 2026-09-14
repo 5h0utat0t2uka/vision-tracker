@@ -4,12 +4,12 @@ import type { Heatmap } from "../../../shared/heatmap/Heatmap.ts";
 import { ProcessingTimings } from "../../../shared/ProcessingTimings.ts";
 import type { AnalysisLongEdge } from "../../../shared/tracking/analysisConfig.ts";
 import { FrameScheduler } from "../../../shared/tracking/FrameScheduler.ts";
-import { ColorTrackingEngine, INITIAL_COLOR_RESULT } from "../components/ColorTrackingEngine.ts";
+import { ColorTrackingEngine, INITIAL_COLOR_RESULT } from "../lib/ColorTrackingEngine.ts";
 import {
   COLOR_METRICS_INTERVAL_MS,
   COLOR_TIMING_LABELS,
   type ColorTrackingSettings,
-} from "../components/config.ts";
+} from "../lib/config.ts";
 
 const INITIAL_METRICS = {
   ...INITIAL_COLOR_RESULT,
@@ -20,30 +20,30 @@ const INITIAL_METRICS = {
 
 type ColorTrackingOptions = {
   videoRef: RefObject<HTMLVideoElement | null>;
-  analysisRef: RefObject<HTMLCanvasElement | null>;
-  filterRef: RefObject<HTMLCanvasElement | null>;
-  overlayRef: RefObject<HTMLCanvasElement | null>;
+  analysisCanvasRef: RefObject<HTMLCanvasElement | null>;
+  filterCanvasRef: RefObject<HTMLCanvasElement | null>;
+  overlayCanvasRef: RefObject<HTMLCanvasElement | null>;
   stageRef: RefObject<HTMLElement | null>;
   heatmap: Heatmap;
   cameraStatus: CameraStatus;
   stopCamera: () => void;
   settings: ColorTrackingSettings;
   targetFps: number;
-  longEdge: AnalysisLongEdge;
+  analysisLongEdge: AnalysisLongEdge;
 };
 
 export function useColorTracking({
   videoRef,
-  analysisRef,
-  filterRef,
-  overlayRef,
+  analysisCanvasRef,
+  filterCanvasRef,
+  overlayCanvasRef,
   stageRef,
   heatmap,
   cameraStatus,
   stopCamera,
   settings,
   targetFps,
-  longEdge,
+  analysisLongEdge,
 }: ColorTrackingOptions) {
   const engineRef = useRef<ColorTrackingEngine | null>(null);
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
@@ -55,9 +55,9 @@ export function useColorTracking({
   const resetTimings = useCallback(() => engineRef.current?.resetTimings(), []);
 
   useEffect(() => {
-    const analysis = analysisRef.current;
-    const filter = filterRef.current;
-    const overlay = overlayRef.current;
+    const analysis = analysisCanvasRef.current;
+    const filter = filterCanvasRef.current;
+    const overlay = overlayCanvasRef.current;
     const stage = stageRef.current;
     if (!analysis || !filter || !overlay || !stage) return;
     let engine: ColorTrackingEngine;
@@ -83,7 +83,7 @@ export function useColorTracking({
       engine.reset();
       engineRef.current = null;
     };
-  }, [heatmap, analysisRef, filterRef, overlayRef, stageRef]);
+  }, [heatmap, analysisCanvasRef, filterCanvasRef, overlayCanvasRef, stageRef]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -117,7 +117,7 @@ export function useColorTracking({
       setMetrics(INITIAL_METRICS);
     };
     const resizeSource = () => {
-      engine.syncVideoSize(video, longEdge);
+      engine.syncVideoSize(video, analysisLongEdge);
       resetProcessing();
     };
     const processFrame: VideoFrameRequestCallback = (now, metadata) => {
@@ -169,13 +169,13 @@ export function useColorTracking({
   }, [
     cameraStatus,
     stopCamera,
-    longEdge,
+    analysisLongEdge,
     detectionKey,
     heatmap,
     videoRef,
-    analysisRef,
-    filterRef,
-    overlayRef,
+    analysisCanvasRef,
+    filterCanvasRef,
+    overlayCanvasRef,
     stageRef,
   ]);
 

@@ -1,3 +1,5 @@
+import { getCoverTransform } from "./geometry.ts";
+
 // Snapshot synchronously before PNG encoding so the two layers cannot advance
 // between draws. CSS filters and the separate region-effect canvas are omitted.
 export function captureFrame(video: HTMLVideoElement, overlay: HTMLCanvasElement): Promise<Blob> {
@@ -21,7 +23,7 @@ export function captureFrame(video: HTMLVideoElement, overlay: HTMLCanvasElement
   if (!context) throw new Error("Unable to create the capture canvas.");
 
   // Match centered object-fit: cover using CSS dimensions, independently of DPR.
-  const scale = Math.max(width / video.videoWidth, height / video.videoHeight);
+  const { scale } = getCoverTransform(video.videoWidth, video.videoHeight, width, height);
   const sourceWidth = width / scale;
   const sourceHeight = height / scale;
   context.drawImage(

@@ -1,3 +1,5 @@
+import { getDownscaledSize } from "../rendering/geometry.ts";
+
 // Analysis resolution presets (long edge in pixels). The source aspect ratio is preserved.
 export const ANALYSIS_LONG_EDGES = [320, 480] as const;
 
@@ -30,9 +32,5 @@ export function getAnalysisSize(
     throw new RangeError("Invalid video dimensions.");
   }
   if (!isAnalysisLongEdge(longEdge)) throw new RangeError("Invalid analysis resolution.");
-  const scale = Math.min(1, longEdge / Math.max(sourceWidth, sourceHeight));
-  return {
-    width: Math.max(1, Math.round(sourceWidth * scale)),
-    height: Math.max(1, Math.round(sourceHeight * scale)),
-  };
+  return getDownscaledSize(sourceWidth, sourceHeight, longEdge);
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { TrackingEngine } from "../src/routes/background-subtraction/components/TrackingEngine.ts";
+import { TrackingEngine } from "../src/routes/background-subtraction/lib/TrackingEngine.ts";
 import {
   ANALYSIS_LONG_EDGES,
   getAnalysisSize,
@@ -9,7 +9,7 @@ import {
   isAnalysisLongEdge,
   type AnalysisLongEdge,
 } from "../src/shared/tracking/analysisConfig.ts";
-import type { TrackingSettings } from "../src/routes/background-subtraction/components/types.ts";
+import type { TrackingSettings } from "../src/routes/background-subtraction/lib/types.ts";
 import { OverlayRenderer } from "../src/shared/tracking/OverlayRenderer.ts";
 import { BlobTracker } from "../src/shared/tracking/BlobTracker.ts";
 import type { Rect, Track } from "../src/shared/tracking/types.ts";
@@ -60,7 +60,7 @@ test("Region effectの切り替えは追跡状態を変更せず、Noneでも矩
   for (const regionEffect of [
     "invert",
     "false-color-webgl",
-    "false-color-filter",
+    "greenscale",
     "none",
     "grayscale",
   ] as const) {
@@ -76,7 +76,7 @@ test("Region effectの切り替えは追跡状態を変更せず、Noneでも矩
         regionEffect === "false-color-webgl" ? filtered.gpu.canvas : video,
       );
     }
-    if (regionEffect === "false-color-filter") {
+    if (regionEffect === "greenscale") {
       assert.equal(filtered.gpu.calls.filter((call) => call.name === "loseContext").length, 1);
     }
     assert.equal(filtered.clears, clears + 1);

@@ -3,16 +3,16 @@ import test, { type TestContext } from "node:test";
 import {
   ObjectDetectorClient,
   type ObjectDetectorResult,
-} from "../src/routes/mediapipe-tasks-vision/components/ObjectDetectorClient.ts";
+} from "../src/routes/mediapipe-tasks-vision/lib/ObjectDetectorClient.ts";
 import type {
   DetectorWorkerRequest,
   DetectorWorkerResponse,
-} from "../src/routes/mediapipe-tasks-vision/components/protocol.ts";
+} from "../src/routes/mediapipe-tasks-vision/lib/protocol.ts";
 import {
   resolveMediaPipeAssetUrls,
   type InferenceConfiguration,
   type DetectionCategory,
-} from "../src/routes/mediapipe-tasks-vision/components/config.ts";
+} from "../src/routes/mediapipe-tasks-vision/lib/config.ts";
 
 type FrameRequest = Extract<DetectorWorkerRequest, { type: "frame" }>;
 

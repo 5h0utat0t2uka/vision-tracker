@@ -176,9 +176,9 @@ class TestWorker extends EventTarget {
 Object.assign(globalThis, { Worker: TestWorker });
 
 const videoRef = createRef<HTMLVideoElement>();
-const analysisRef = createRef<HTMLCanvasElement>();
-const filterRef = createRef<HTMLCanvasElement>();
-const overlayRef = createRef<HTMLCanvasElement>();
+const analysisCanvasRef = createRef<HTMLCanvasElement>();
+const filterCanvasRef = createRef<HTMLCanvasElement>();
+const overlayCanvasRef = createRef<HTMLCanvasElement>();
 const stageRef = createRef<HTMLElement>();
 const heatmap = new Heatmap();
 const stopCamera = () => {
@@ -189,12 +189,9 @@ const common = {
   stageRef,
   heatmap,
   stopCamera,
-  analysisRef,
-  filterRef,
-  overlayRef,
-  analysisCanvasRef: analysisRef,
-  filterCanvasRef: filterRef,
-  overlayCanvasRef: overlayRef,
+  analysisCanvasRef,
+  filterCanvasRef,
+  overlayCanvasRef,
 };
 let options = {
   ...common,
@@ -202,7 +199,6 @@ let options = {
   settings: { ...DEFAULT_COLOR_SETTINGS, motionThreshold: 70, backgroundTimeConstantMs: 3300 },
   targetFps: 30,
   analysisLongEdge: 320 as const,
-  longEdge: 320 as const,
   categories: ["person"] as const,
   scoreThreshold: 0.5,
   inferenceConfiguration: DEFAULT_INFERENCE_CONFIGURATION,
@@ -216,9 +212,9 @@ function Stage() {
   return (
     <section ref={stageRef}>
       <video ref={videoRef} />
-      <canvas ref={analysisRef} />
-      <canvas ref={filterRef} />
-      <canvas ref={overlayRef} />
+      <canvas ref={analysisCanvasRef} />
+      <canvas ref={filterCanvasRef} />
+      <canvas ref={overlayCanvasRef} />
     </section>
   );
 }

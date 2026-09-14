@@ -2,6 +2,7 @@ import type { Point, Rect, Track } from "./types.ts";
 import type { RegionEffect } from "../rendering/regionEffect.ts";
 import { FalseColorRenderer } from "../rendering/FalseColorRenderer.ts";
 import type { Heatmap } from "../heatmap/Heatmap.ts";
+import { getCoverTransform } from "../rendering/geometry.ts";
 
 // Video filtering needs fewer backing pixels than crisp lines and text.
 export const FILTER_MAX_PIXEL_RATIO = 1;
@@ -145,15 +146,7 @@ export class OverlayRenderer {
   }
 
   private createCoverTransform(sourceWidth: number, sourceHeight: number): CoverTransform {
-    const scale = Math.max(this.cssWidth / sourceWidth, this.cssHeight / sourceHeight);
-    const renderWidth = sourceWidth * scale;
-    const renderHeight = sourceHeight * scale;
-    return {
-      renderWidth,
-      renderHeight,
-      offsetX: (this.cssWidth - renderWidth) / 2,
-      offsetY: (this.cssHeight - renderHeight) / 2,
-    };
+    return getCoverTransform(sourceWidth, sourceHeight, this.cssWidth, this.cssHeight);
   }
 
   private drawFilteredRegion(
