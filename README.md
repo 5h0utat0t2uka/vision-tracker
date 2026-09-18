@@ -11,8 +11,8 @@ Camera frames are processed locally and are not uploaded.
 - 映像を外部に送信せず端末内で完結
 - ハードウェア（内部・外部カメラ）に依存しない
 - 以下のような解析の用途に応用可能
-  - 滞在・活動量の可視化 
-  - 動線・ヒートマップ生成
+  - [x] 滞在・活動量の可視化 
+  - [x] 動線・ヒートマップ生成
   - 
 
 <!--## Tracking Hooks
